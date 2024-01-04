@@ -2,12 +2,13 @@
 site_name: "" 
 site_url: "https://huangqinwen.github.io/tomopick.github.io/"
 site_dir: public
+repo_url: "https://github.com/nextpyp/cet_pick"
 nav:
   - Getting Started:
     - Installation: index.md
     - Cellular Content Exploration: explore.md
     - Particle Refined Localization: refine.md
-    - Quick tutorial: quick_tutorial.md
+    - Quick tutorials: quick_tutorial.md
 markdown_extensions:
   - abbr
   - admonition

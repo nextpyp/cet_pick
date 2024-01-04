@@ -1,6 +1,6 @@
-### Quick tutorials
+## Quick tutorials
 
-#### Globular-shaped targets
+### Globular-shaped targets
 
 First, we need to download and decompress the data consisting of a subset of tilt-series and tomograms obtained from EMPIAR-10304:
 
@@ -31,7 +31,7 @@ Next, go to the folder where `main.py` and `test.py` are located (this is simply
 ├── test.py
 ```
 
-##### Cellular content exploration
+#### Cellular content exploration
 
 To start training, run:
 
@@ -58,20 +58,20 @@ This is what the folder structure should look like:
   [Output snapshot]: assets/outputs_sample.jpg
 
 
-###### 2D visualization
+##### 2D visualization
 Run the following command:
 ```
 python plot_2d.py --input exp/simsiam2d3d/test_sample/all_output_info.npz --n_cluster 48 --num_neighbor 40 --mode umap --path exp/simsiam2d3d/test_sample/ --min_dist_vis 1.3e-3 
 ```
 
-###### 3D visualization
+##### 3D visualization
 Run the following command:
 
 ```
 python visualize_3dhm.py --input exp/simsiam2d3d/test_sample/all_output_info.npz --color exp/simsiam2d3d/test_sample/all_colors.npy --dir_simsiam exp/simsiam2d3d/test_sample/ --rec_dir sample_data/
 ```
 
-###### 3D interactive session
+##### 3D interactive session
 
 To launch, run:
 
@@ -88,7 +88,7 @@ Note: `--input` should contain the path to where all parquet files are stored (n
 
 The contents of the output file `training_coordinates.txt` should coincide with the file downloaded above `training_coordinates.txt`.
 
-##### Refined particle localization
+#### Refined particle localization
 To train the model for refined particle localization, run:
 
 ```
@@ -103,6 +103,6 @@ python test.py semi --arch unet_4 --dataset semi --exp_id sample_refinement --lo
 
 Finally, output coordinates will be saved into `exp/semi/sample_refinement/all_out/*.txt`.
 
-#### Tubular-shaped targets
+### Tubular-shaped targets
 
 TODO
