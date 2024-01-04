@@ -16,12 +16,12 @@ from cet_pick.utils.loader import load_tomos_from_list
 from cet_pick.utils.coordinates import match_coordinates_to_images
 from utils.image import gaussian_radius, draw_umich_gaussian_3d, draw_msra_gaussian_3d, flip_ud, flip_lr
 
-class TOMOMoco(Dataset):
+class TOMOMocoClass(Dataset):
 	num_classes = 1 
 	default_resolution = [256, 256]
 
-	def __init__(self, opt, split):
-		super(TOMOMoco, self).__init__()
+	def __init__(self, opt, split, width_xy, width_z):
+		super(TOMOMocoClass, self).__init__()
 		if split == 'train':
 			self.data_dir = os.path.join(opt.data_dir, opt.train_img_txt)
 			self.coord_dir = os.path.join(opt.data_dir, opt.train_coord_txt)
@@ -50,6 +50,8 @@ class TOMOMoco(Dataset):
 		# self.images, self.targets, self.names = self.load_data()
 		self.tomos, self.hms, self.inds, self.gt_dets, self.names = self.load_data()
 		self.num_samples = len(self.tomos)
+		self.width_z = width_z
+		self.width_xy = width_xy
 		# print('hello tomo')
 		print('Loaded {} {} samples'.format(split, self.num_samples))
 
@@ -93,10 +95,10 @@ class TOMOMoco(Dataset):
 			# print('num_objs', num_objs)
 			output_h, output_w = height // self.opt.down_ratio, width // self.opt.down_ratio
 			num_class = self.num_classes
-			if self.opt.pn:
-				hm = np.zeros((depth, output_h, output_w), dtype=np.float32)
-			else:
-				hm = np.zeros((depth, output_h, output_w), dtype=np.float32) - 1
+			# if self.opt.pn:
+			# 	hm = np.zeros((depth, output_h, output_w), dtype=np.float32)
+			# else:
+			hm = np.zeros((depth, output_h, output_w), dtype=np.float32)
 			ind = np.zeros((num_objs), dtype=np.int64)
 			draw_gaussian = draw_umich_gaussian_3d
 			gt_det = []

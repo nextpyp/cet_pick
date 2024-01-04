@@ -14,9 +14,7 @@ setup(
         "colorlog",
         "colored_traceback",
         "tqdm",
-        "pytorch-metric-learning",
         "pyYAML",
         "mrcfile",
-        "numpy"
     ],
 )

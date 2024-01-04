@@ -6,32 +6,36 @@ import argparse
 import os
 import sys
 
+  
+def list_of_floats(arg):
+  return list(map(float, arg.split(',')))
+  
 class opts(object):
   def __init__(self):
     self.parser = argparse.ArgumentParser()
     # basic experiment setting
-    self.parser.add_argument('task', default='tomo',
-                             help='particle detection for cryoET/tomo datasets')
-    self.parser.add_argument('--dataset', default='tomo',
-                             help='cryoET dataset has default tomo')
-    self.parser.add_argument('--exp_id', default='default')
-    self.parser.add_argument('--test', action='store_true')
-    self.parser.add_argument('--debug', type=int, default=0,
-                             help='level of visualization.'
-                                  '1: only show the final detection results'
-                                  '2: show the network output features'
-                                  '3: use matplot to display' # useful when lunching training with ipython notebook
-                                  '4: save all visualizations to disk')
-    self.parser.add_argument('--demo', default='', 
-                             help='path to image/ image folders/ video. '
-                                  'or "webcam"')
+    self.parser.add_argument('task', default='semi',
+                             help='particle detection for cryoET/tomo datasets, ' 
+                                  'for semi-supervised/few shot particle detection, please use semi, '
+                                  'for unsupervised pretraining, please use simsiam, '
+                                  'for unsupervised evaluation, please use simsiam_test. ')
+    self.parser.add_argument('--dataset', default='semi',
+                             help='cryoET dataset has default tomo'
+                                  'for semi-supervised/few shot particle detection during training, please use semi, '
+                                  'for semi-supervised/few shot particle detection during evaluation, please use semi_test, ')
+    self.parser.add_argument('--exp_id', default='default', help='experiment id for this run to save all outputs')
+    self.parser.add_argument('--test', action='store_true', help='whether to perform testing after training')
+    self.parser.add_argument('--debug', type=int, default=4,
+                             help=' for semi-supervised detection, 4: save all visualizations to disk, including heatmaps, ground truth annotations')
     self.parser.add_argument('--load_model', default='',
                              help='path to pretrained model')
+    self.parser.add_argument('--pretrain_model', default='', help='path to simsiam pretrain weights')
     self.parser.add_argument('--resume', action='store_true',
                              help='resume an experiment. '
                                   'Reloaded the optimizer parameter and '
                                   'set load_model to model_last.pth '
                                   'in the exp dir if load_model is empty.') 
+    self.parser.add_argument('--fiber', action='store_true', help='whether trying to identify fiber. changes in postprocessing and initialization')
 
     # system
     self.parser.add_argument('--gpus', default='0', 
@@ -60,7 +64,7 @@ class opts(object):
     self.parser.add_argument('--hide_data_time', action='store_true',
                              help='not display time during training.')
     self.parser.add_argument('--save_all', action='store_true',
-                             help='save model to disk every 5 epochs.')
+                             help='save model to disk every x epochs.')
     self.parser.add_argument('--metric', default='loss', 
                              help='main metric to save best model')
     self.parser.add_argument('--vis_thresh', type=float, default=0.3,
@@ -69,17 +73,21 @@ class opts(object):
                              choices=['white', 'black'])
     
     # model
-    self.parser.add_argument('--arch', default='res_18', 
+    self.parser.add_argument('--arch', default='unet_4', 
                              help='model architecture. Currently tested'
-                                  'ressmall_18 | res_101 | resdcn_18 | resdcn_101 |'
-                                  'dlav0_34 | dla_34 | hourglass')
+                                  'ressmall_18 | unet_4 | unet_5 ,'
+                                  'unet_x typically performs better than ressmall')
+    self.parser.add_argument('--last_k', type=int, default=3,
+                             help='kernel size for the last convolution prior to projection layer, default is 3,' 
+                             'change this to bigger number if particle is bigger')
+    
     self.parser.add_argument('--head_conv', type=int, default=-1,
                              help='conv layer channels for output head'
                                   '0 for no conv layer'
                                   '-1 for default setting: '
-                                  '64 for resnets and 256 for dla.')
+                                  '32 for particle identification and 128 for simsiam training.')
     self.parser.add_argument('--down_ratio', type=int, default=2,
-                             help='output stride. Currently only supports 2.')
+                             help='output stride. Currently only supports 2 for particle detection.')
 
     # input
     self.parser.add_argument('--input_res', type=int, default=-1, 
@@ -103,6 +111,9 @@ class opts(object):
 
     self.parser.add_argument('--warm', action='store_true', help='warm-up for large batch training')
 
+    self.parser.add_argument('--contrastive', action='store_true',
+                             help='whether contrastive training')
+
     self.parser.add_argument('--batch_size', type=int, default=1,
                              help='batch size')
     self.parser.add_argument('--master_batch_size', type=int, default=-1,
@@ -119,11 +130,14 @@ class opts(object):
     self.parser.add_argument('--thresh', type=float, default=0.5, help='threshold for pos and neg contrastive')
     self.parser.add_argument('--temp', type=float, default=0.07, help='temperature for info nce loss')
     self.parser.add_argument('--tau', type=float, default=0.1, help='class prior probability')
-
+    self.parser.add_argument('--nclusters', type=int, default=3, help='number of clusters for SCAN')
+    self.parser.add_argument('--nheads', type=int, default=1, help='number of heads for SCAN model')
+    self.parser.add_argument('--names', type=str, help='list of names of tomograms')
+    # self.parser.add_argument('--name', type=str, hlep='single na')
     # test
 
-    self.parser.add_argument('--nms', action='store_true',
-                             help='run nms in testing.')
+    self.parser.add_argument('--nms', type=int, default=3, help='radius for running nms, default is 3')
+    self.parser.add_argument('--cutoff_z', type=int, default=10, help='removing # of leading and trailing z slices')
     self.parser.add_argument('--K', type=int, default=200,
                              help='max number of output objects.') 
     self.parser.add_argument('--not_prefetch_test', action='store_true',
@@ -139,14 +153,16 @@ class opts(object):
 
     self.parser.add_argument('--with_score', action='store_true', help='whether to have score column in output text files')
 
-    self.parser.add_argument('--contrastive', action='store_true',
-                             help='whether contrastive training')
+    
 
     self.parser.add_argument('--pn', action='store_true',
                              help='whether to use positive negative learning with fully labeled data')
     self.parser.add_argument('--ge', action='store_true',
                              help='whether to use generalized criteria loss')
-
+    ### fiber specific 
+    self.parser.add_argument('--distance_cutoff', type=float, default=15, help='distance cutoff for whether two points are connected in graph')
+    self.parser.add_argument('--r2_cutoff', type=float, default=30, help='max residual for fitted curve, omit if above the residual/bad fitting')
+    self.parser.add_argument('--curvature_cutoff', type=float, default=0.003, help='max curvature for fitted curve, for microtubules the curvature should be small')
     ### data 
 
     self.parser.add_argument('--train_img_txt', type=str, default='train_images.txt', help='path to file of training images')
@@ -155,8 +171,17 @@ class opts(object):
     self.parser.add_argument('--val_coord_txt', type=str, default='val_coords.txt', help='path to file of validation coordinates')
     self.parser.add_argument('--test_img_txt', type=str, default = 'test_images.txt', help='path to file of test images')
     self.parser.add_argument('--test_coord_txt', type=str, default='test_coords.txt', help='path to file of test coords')
+    self.parser.add_argument('--compress', action='store_true', 
+                              help = 'whether to combine 2 slice into 1 slice during reading of the dataset')
+    self.parser.add_argument('--gauss', type=float, default=0,
+                              help = 'whether to gaussian filter input tomogram during reading of the dataset and the value for sigma')
+    self.parser.add_argument('--cluster_head', action='store_true',
+                              help = 'whether to update cluster head only for SCAN')
+    self.parser.add_argument('--out_id', type=str, default='output', help = 'directory name for all evaluation outputs. ')
+    self.parser.add_argument('--order', type=str, default='xzy', help='input order for reconstructed tomogram')
+    self.parser.add_argument('--dog', type=list_of_floats, default=[2.5,5], help='gaussian sigma for difference of gaussian operation')
 
-  
+
 
   def parse(self, args=''):
     if args == '':
@@ -173,7 +198,11 @@ class opts(object):
     # print('Fix size testing.' if opt.fix_res else 'Keep resolution testing.')
 
     if opt.head_conv == -1: # init default head_conv
-      opt.head_conv = 256 if 'dla' in opt.arch else 16
+      if opt.task == 'simsiam' or opt.task == 'simsiam2d3d' or opt.task == 'simsiam3d':
+        opt.head_conv = 128 
+      if opt.task =='semi':
+        opt.head_conv = 32
+      # opt.head_conv = 256 if 'dla' in opt.arch else 16
     opt.pad = 127 if 'hourglass' in opt.arch else 31
     opt.num_stacks = 2 if opt.arch == 'hourglass' else 1
 
@@ -192,7 +221,7 @@ class opts(object):
 
     if opt.debug > 0:
       opt.num_workers = 0
-      opt.batch_size = 1
+      # opt.batch_size = 1
       opt.gpus = [opt.gpus[0]]
       opt.master_batch_size = -1
 
@@ -213,7 +242,11 @@ class opts(object):
     opt.exp_dir = os.path.join(opt.root_dir, 'exp', opt.task)
     opt.save_dir = os.path.join(opt.exp_dir, opt.exp_id)
     opt.debug_dir = os.path.join(opt.save_dir, 'debug')
-    opt.out_path = os.path.join(opt.save_dir, 'output_test')
+    if opt.task == 'scan2d3d':
+      opt.simsiam_dir = os.path.join(opt.root_dir, 'exp', 'simsiam2d3d', opt.exp_id)
+    elif opt.task == 'scan':
+      opt.simsiam_dir = os.path.join(opt.root_dir, 'exp', 'simsiam', opt.exp_id)
+    opt.out_path = os.path.join(opt.save_dir, opt.out_id)
     print('The output will be saved to ', opt.save_dir)
     
     if opt.resume and opt.load_model == '':
@@ -240,11 +273,20 @@ class opts(object):
     if opt.task == 'tomo':
       opt.heads = {'hm': opt.num_classes, 'proj': 16}
     elif opt.task == 'cr' or opt.task == 'semi' or opt.task =='semi3d':
-      opt.heads = {'hm': opt.num_classes, 'proj':16}
+      opt.heads = {'hm': opt.num_classes, 'proj':opt.head_conv}
     elif opt.task == 'fs':
       opt.heads = {'proj':16}
     elif opt.task == 'tcla':
       opt.heads ={'class':1}
+    elif opt.task == 'simsiam' or opt.task == 'simsiam2d3d' or opt.task == 'simsiam3d':
+      opt.heads = {'proj': opt.head_conv, 'pred': opt.head_conv}
+    elif opt.task == 'scan' or opt.task == 'scan2d3d':
+      opt.heads = {'proj': opt.head_conv, 'pred': opt.head_conv}
+
+    elif opt.task == 'moco':
+      opt.heads = {'proj': 256, 'pred': 256}
+    elif opt.task == 'denoise':
+      opt.heads = {'proj': 128}
     else:
       assert 0, 'task not defined!'
     print('heads', opt.heads)
@@ -252,26 +294,16 @@ class opts(object):
 
   def init(self, args=''):
     default_dataset_info = {
-      # 'ctdet': {'default_resolution': [512, 512], 'num_classes': 80, 
-      #           'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
-      #           'dataset': 'coco'},
-      # 'exdet': {'default_resolution': [512, 512], 'num_classes': 80, 
-      #           'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
-      #           'dataset': 'coco'},
-      # 'multi_pose': {
-      #   'default_resolution': [512, 512], 'num_classes': 1, 
-      #   'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
-      #   'dataset': 'coco_hp', 'num_joints': 17,
-      #   'flip_idx': [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], 
-      #                [11, 12], [13, 14], [15, 16]]},
-      # 'ddd': {'default_resolution': [384, 1280], 'num_classes': 3, 
-      #           'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225],
-      #           'dataset': 'kitti'},
+     
       'tomo': {'default_resolution': [512, 512], 'num_classes': 1, 'dataset': 'tomo'},
       'cr':{'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'cr'},
       'semi': {'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'semi'},
       'semi3d': {'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'semi3d'},
-      'fs':{'default_resolution':[128, 128], 'num_classes':1, 'dataset': 'fs'}
+      'fs':{'default_resolution':[128, 128], 'num_classes':1, 'dataset': 'fs'},
+      'simsiam':{'default_resolution':[24, 24], 'num_classes':256, 'dataset':'simsiam'},
+      'scan':{'default_resolution':[24, 24], 'num_classes':256, 'dataset':'scan'},
+      'denoise':{'default_resolution':[64, 64], 'num_classes':256, 'dataset':'denoise'},
+      'moco':{'default_resolution':[32, 32], 'num_classes':256, 'dataset':'moco'},
 
     }
     class Struct:

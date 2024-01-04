@@ -20,7 +20,7 @@ class BaseDetector(object):
             opt.device = torch.device('cpu')
 
         print('Creating model...')
-        self.model = create_model(opt.arch, opt.heads, opt.head_conv)
+        self.model = create_model(opt.arch, opt.heads, opt.head_conv,last_k = opt.last_k)
         self.model = load_model(self.model, opt.load_model)
         self.model = self.model.to(opt.device)
         self.model.eval()
@@ -35,7 +35,7 @@ class BaseDetector(object):
         c = np.array([width // 2, height // 2], dtype=np.float32)
         s = np.array([width, height], dtype = np.float32)
         tomo = torch.from_numpy(images)
-        meta = {'c': c, 's': s, 'out_height': height // self.opt.down_ratio, 'out_width': width // self.opt.down_ratio}
+        meta = {'c': c, 's': s, 'out_height': height // self.opt.down_ratio, 'out_width': width // self.opt.down_ratio, 'zdim': depth}
         return images
 
     def process(self, images, return_time=False):
@@ -53,7 +53,7 @@ class BaseDetector(object):
     def show_results(self, debugger, image, results):
         raise NotImplementedError
 
-    def save_detection(self, dets, path, prefix='', name=''):
+    def save_detection(self, dets, path, meta, prefix='', name=''):
         raise NotImplementedError
 
     def run(self, image_or_path_or_tensor, meta=None):
@@ -62,34 +62,20 @@ class BaseDetector(object):
         debugger = Debugger(dataset = self.opt.dataset)
         start_time = time.time()
         pre_processed = False 
-        # if isinstance(image_or_path_or_tensor, np.ndarray):
-        #   image = image_or_path_or_tensor
-        #   # pre_processed = True
-        # elif type(image_or_path_or_tensor) == type(''):
-        #   image = load_rec(image_or_path_or_tensor)
-        # else:
-        #   image = image_or_path_or_tensor['image'][0].numpy()
-        #   pre_processed_images = image_or_path_or_tensor
-        #   pre_processed = True 
 
         loaded_time = time.time()
         load_time += (loaded_time - start_time)
         detections = []
-        # if not pre_processed:
-        #   images = self.pre_process(image, meta)
-        # else:
-        #   images = pre_processed_images['images'][0]
-        #   meta = pre_processed_images['meta'][scale]
-        #   meta = {k: v.numpy()[0] for k, v in meta.items()}
+
         images = image_or_path_or_tensor
-        images = images.to(self.opt.device)
-        
+        images = images.to(self.opt.device, non_blocking=True)
+
         # torch.cuda().synchronize()
         pre_process_time = time.time()
         pre_time += 0
 
         output, dets, hm, forward_time = self.process(images, return_time=True)
-
+        batch, cat, depth, height, width = hm.size()
         # torch.cuda.synchronize()
         net_time += forward_time - pre_process_time
         decode_time = time.time()
@@ -98,32 +84,18 @@ class BaseDetector(object):
         if self.opt.debug >= 2:
             self.debug(debugger, images, dets, output)
 
-        dets, name = self.post_process(dets, meta)
+        dets, name = self.post_process(dets, meta, z_dim_tot=depth)
         if self.opt.gpus[0] >= 0: 
             torch.cuda.synchronize()
         post_process_time = time.time()
         post_time += post_process_time - decode_time 
-        self.save_detection(hm, dets, self.opt.out_path, name = name)
+        self.save_detection(hm, dets, self.opt.out_path,meta, name = name)
 
         # torch.cuda.synchronize()
         end_time = time.time()
         tot_time += end_time - start_time
-        # detections.append(dets)
-
-        # results = self.merge_outputs(detections)
-        # torch.cuda.synchronize()
-        # end_time = time.time()
-        # merge_time += end_time - post_process_time
-        # tot_time += end_time - start_time 
-
-        # if self.opt.debug >= 1:
         #   self.show_results(debugger, image, results)
         return {'tot_time': tot_time, 'load': load_time, 'pre': pre_time, 'net': net_time, 'dec': dec_time}
-
-        # return {'results': results, 'tot': tot_time, 'load': load_time,
-        # 'pre': pre_time, 'net': net_time, 'dec': dec_time, 
-        # 'post': post_time, 'merge': merge_time
-        # }
 
 
 

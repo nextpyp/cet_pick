@@ -20,7 +20,7 @@ def count_parameters(model):
 
 def main(opt):
   torch.manual_seed(opt.seed)
-  # torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
+  torch.backends.cudnn.benchmark = not opt.not_cuda_benchmark and not opt.test
   if "WORLD_SIZE" in os.environ:
     opt.world_size = int(os.environ["WORLD_SIZE"])
 
@@ -48,15 +48,10 @@ def main(opt):
   opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
   
   print('Creating model...')
-  model = create_model(opt.arch, opt.heads, opt.head_conv)
+  model = create_model(opt.arch, opt.heads, opt.head_conv, last_k = opt.last_k)
   if opt.distributed:
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-  # print('model', model)
-  # print(count_parameters(model))
-  # first we freeze the last layers 
-  # for name, param in model.parameters():
-  #   if 'out' in name:
-  #     param.requires_grad = False
+  
   optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), opt.lr)
 
   start_epoch = 0
@@ -100,9 +95,7 @@ def main(opt):
   epoch = 1
   cluster_centers = None 
   cluster_ind = None
-  # with torch.no_grad():
-  #   log_dict_val, preds = trainer.val(epoch, val_loader)
-  # print('now start training ....')
+
   for epoch in range(start_epoch + 1, opt.num_epochs + 1):
     mark = epoch if opt.save_all else 'last'
     log_dict_train, _, = trainer.train(epoch, train_loader)

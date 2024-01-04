@@ -125,7 +125,7 @@ def planar_pad(x):
 
 
 def conv3(in_channels, out_channels, kernel_size=3, stride=1,
-          padding=1, bias=True, planar=False, dim=3):
+          padding=1, bias=False, planar=False, dim=3):
     """Returns an appropriate spatial convolution layer, depending on args.
     - dim=2: Conv2d with 3x3 kernel
     - dim=3 and planar=False: Conv3d with 3x3x3 kernel

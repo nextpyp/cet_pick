@@ -14,14 +14,14 @@ from logger import Logger
 from utils.utils import AverageMeter
 from cet_pick.datasets.dataset_factory import dataset_factory
 from cet_pick.detectors.detector_factory import detector_factory
-from cet_pick.utils.loader import load_rec
+from cet_pick.utils.loader import load_rec, preprocess
 
 class PrefetchDataset(torch.utils.data.Dataset):
 
     def __init__(self, opt, dataset):
         self.opt = opt 
-        # self.images = dataset.images 
-        self.images = dataset.paths
+        self.images = dataset.images 
+        # self.images = dataset.paths
         # self.images = dataset.tomos
         # self.targets = dataset.targets 
         # self.targets = dataset.gt_dets
@@ -34,7 +34,12 @@ class PrefetchDataset(torch.utils.data.Dataset):
         img = self.images[index]
         # coords = self.targets[index]
         name = self.names[index]
-        inp = load_rec(img)
+        # inp = load_rec(img, order='xzy', compress=True, is_tilt=False)
+        # inp = preprocess(inp, denoise=True, is_tilt=False, sigma=1)
+        # print('inp', inp.shape)
+        # inp = inp[59:184]
+        # print('inp', inp.mean())
+        # print('inp std', inp.std())
         # gt_det = []
         # num_objs = len(coords)
         # for k in range(num_objs):
@@ -44,9 +49,11 @@ class PrefetchDataset(torch.utils.data.Dataset):
         #     ann = np.array(ann)
         #     gt_det.append(ann)
         # gt_det = np.array(gt_det, dtype=np.float32) if len(gt_det) > 0 else np.zeros((1,3), dtype=np.float32)
-        ret = {'input':inp.astype(np.float32)}
-        meta = {'name': name}
+        ret = {'input':img.astype(np.float32)}
+        meta = {'name': name,'zdim':img.shape[0]}
         ret['meta'] = meta
+        # print('ret inp', ret['input'].mean())
+        # print('ret inp', ret['input'].std())
         return ret 
 
     def __len__(self):
@@ -74,7 +81,6 @@ def test(opt):
     avg_time_stats = {t: AverageMeter() for t in time_stats}
     for iter_id, batch in enumerate(data_loader):
         input_tomo = batch['input']
-        # print('input_tomo', input_tomo.shape)
         meta = batch['meta']
         ret = detector.run(input_tomo, meta)
     Bar.suffix = '[{0}/{1}]|Tot: {total:} |ETA: {eta:} '.format(

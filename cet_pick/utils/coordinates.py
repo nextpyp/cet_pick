@@ -42,16 +42,13 @@ def match_coordinates_to_images(coord, images):
 
     for name in images.keys():
         im = images[name]
-        # print('im',im.shape)
         depth, height, width = im.shape
         xy = coords.get(name, null_coords)
         matched[name]= {}
         matched[name]['tomo'] = im 
         matched[name]['coord'] = xy
         inds = convert_3d_to_1d_coord(xy, width, height)
-        # print('xy', xy)
         matched[name]['inds'] = inds
-        # print('inds', inds)
     return matched
 
 def match_coordinates_class_to_images(coord, images):

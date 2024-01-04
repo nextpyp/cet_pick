@@ -9,6 +9,7 @@ import logging
 import torch
 import torch.nn as nn
 from cet_pick.models.utils import insize_from_outsize_3d, out_from_in
+import torch.nn.functional as F
 
 BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ def fill_fc_weights(layers):
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
         elif isinstance(m, nn.Linear):
-            nn.init.normal(m.weight, std=0.001)
+            nn.init.normal_(m.weight, std=0.001)
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0.001)
 
@@ -90,6 +91,8 @@ class ResNet(nn.Module):
         if self.pad:
             p_z, p_xy = self.width_z//2, self.width_xy//2
             x_2d = F.pad(x, (p_xy,p_xy,p_xy,p_xy))
+        else:
+            x_2d = x
         b, d, h, w = x_2d.shape 
         if b > 1:
             x_2d = x_2d.reshape((-1,h,w)).contiguous()
@@ -118,7 +121,7 @@ class ResNet(nn.Module):
         return [ret]
 
 class ResNet8_more3D(ResNet):
-    def make_modules(self, units=[32, 64, 128], bn=True, dropout=0.0,
+    def make_modules(self, units=[16, 32, 64], bn=True, dropout=0.0,
                     activation=nn.ReLU, pooling=None, **kwargs):
         if units is None:
             units = [32, 64, 128]
@@ -132,7 +135,7 @@ class ResNet8_more3D(ResNet):
             self.stride_z = 2
         stride_z, stride_xy = self.stride_z, self.stride_xy
         modules = [
-                BasicConv2d(1, units[0], 7, stride=stride_xy, bn=bn, activation=activation),
+                BasicConv2d(1, units[0], 3, stride=stride_xy, bn=bn, activation=activation),
                 ]
         if dropout > 0:
             modules.append(nn.Dropout(p=dropout))
@@ -151,7 +154,7 @@ class ResNet8_more3D(ResNet):
 
         modules += [
                 BasicConv3d(units[1], units[2], (3,3,3), stride= (stride_z,stride_xy,stride_xy), bn=bn, activation=activation),
-                BasicConv3d(units[2], units[2], (3,3,3), stride = (1,1,1),bn=bn, activation=activation),
+                BasicConv3d(units[2], units[1], (3,3,3), stride = (1,1,1),bn=bn, activation=activation),
         ]
 
         self.latent_dim = units[1]
@@ -159,7 +162,7 @@ class ResNet8_more3D(ResNet):
 
 
 class ResNet8_last3D(ResNet):
-    def make_modules(self, units=[32, 64, 128], bn=True, dropout=0.0,
+    def make_modules(self, units=[16, 32, 64], bn=True, dropout=0.0,
                     activation=nn.ReLU, pooling=None, **kwargs):
         if units is None:
             units = [32, 64, 128]
@@ -434,6 +437,9 @@ class ResidA(nn.Module):
         y = self.act1(y)
         return y 
 
-def get_resnet_new(num_of_layers, heads, head_conv = 64, bn = False):
-    model = ResNet8_last3D(heads, head_conv = head_conv, bn=bn)
+def get_resnet_new(num_layers, heads, head_conv = 0, bn = False):
+    if head_conv:
+        model = ResNet8_more3D(heads, head_conv=head_conv, bn=bn)
+    else:
+        model = ResNet8_last3D(heads, head_conv = head_conv, bn=bn)
     return model

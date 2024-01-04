@@ -124,7 +124,7 @@ def fill_fc_weights(layers):
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0)
         elif isinstance(m, nn.Linear):
-            nn.init.normal(m.weight, std=0.001)
+            nn.init.normal_(m.weight, std=0.001)
             if m.bias is not None:
                 nn.init.constant_(m.bias, 0.001)
 

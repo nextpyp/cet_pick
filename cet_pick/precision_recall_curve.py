@@ -39,11 +39,11 @@ def main(args):
     
     match_radius = args.assignment_radius
     # targets = pd.read_csv(args.targets, sep='\t')
-    # predicts = pd.read_csv(args.predicted, sep='\t', comment='#')
-    pred_path = os.path.join(args.path, args.predicted)
+    predicts = pd.read_csv(args.predicted, sep='\t', comment='#')
+    # pred_path = os.path.join(args.path, args.predicted)
     targets = pd.read_csv(args.targets, sep='\t')
     # predicts = pd.read_csv(args.predicted, sep='\t', comment='#')
-    predicts = pd.read_csv(pred_path, sep='\t', comment='#')
+    # predicts = pd.read_csv(pred_path, sep='\t', comment='#')
     out_path = os.path.join(args.path, args.stats)
     # out_path = args.predicted.
     out_file = open(out_path, 'w+')

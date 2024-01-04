@@ -14,7 +14,7 @@ class Debugger(object):
         self.dim_scale = 1
         colors = [(color_list[_]).astype(np.uint8) for _ in range(len(color_list))]
         self.colors = np.array(colors, dtype=np.uint8).reshape(len(colors), 1, 1, 3)
-        if dataset == 'tomo' or 'cr':
+        if dataset == 'tomo' or 'cr' or 'denoise':
             self.names = ['particle']
             self.num_class = 1 
         num_classes = len(self.names)
@@ -35,8 +35,6 @@ class Debugger(object):
 
     def gen_colormap(self, img, output_res = None):
         img = img.copy()
-        # print('img', img.shape)
-        # print('img stats',np.max(img), np.min(img))
         c, h, w = img.shape[0], img.shape[1], img.shape[2]
         if output_res is None:
             output_res = (h * self.down_ratio, w * self.down_ratio)
@@ -74,13 +72,13 @@ class Debugger(object):
 
     def save_detection(self, dets, path='./cache/debug/', prefix='', name=''):
 
-        out_detect = open(path+'/{}.txt'.format(name), 'w+')
+        out_detect = open(path+'/{}_{}.txt'.format(name, prefix), 'w+')
         for k, v in dets.items():
             for c in v:
                 x, y, z = int(c[0]), int(np.floor(c[1])), int(np.floor(c[2]))
                 score = c[3]
                 conf = c[4]
-                if conf > 0.2:
+                if conf > 0.3:
                     print(str(x) + '\t' + str(z) + '\t' + str(y) + '\t' + str(score), file = out_detect)
 
 
@@ -99,7 +97,7 @@ class Debugger(object):
         for i, v in self.imgs.items():
             cv2.imwrite(path + '/{}{}{}.png'.format(prefix, i, slice_num), v)
 
-    def add_particle_detection(self, dets, rad, show_box=False, center_thresh = 0.1, img_id = 'det'):
+    def add_particle_detection(self, dets, rad, show_box=False, center_thresh = 0.3, img_id = 'det'):
         for i in range(len(dets)):
             # print(dets[i])
             if len(dets[0]) > 3:

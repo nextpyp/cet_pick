@@ -128,7 +128,7 @@ def fill_fc_weights(layers):
 
 
 class TomoResNet(nn.Module):
-    def __init__(self, block, layers, heads, head_conv):
+    def __init__(self, block, layers, heads, head_conv, last_k):
         self.inplanes = 64
         self.heads = heads 
         self.deconv_with_bias = False 
@@ -148,7 +148,7 @@ class TomoResNet(nn.Module):
             [4, 4],
         )
 
-        self.feature_head = nn.Sequential(nn.Conv3d(32, 16, kernel_size = (3,3,3), padding=(1,1,1), bias=True), 
+        self.feature_head = nn.Sequential(nn.Conv3d(32, head_conv, kernel_size = (3,last_k,last_k), padding=(1,int((last_k-1)//2),int((last_k-1)//2)), bias=True), 
                     nn.ReLU(inplace=True)
             )
         fill_fc_weights(self.feature_head)
@@ -171,7 +171,7 @@ class TomoResNet(nn.Module):
             #     fill_fc_weights(fc)
             # else:
             # this can be viewed as projection head in contrastive learning
-            fc = nn.Conv3d(16, classes, kernel_size = 1, stride = 1, padding=0, bias=True)
+            fc = nn.Conv3d(head_conv, classes, kernel_size = 1, stride = 1, padding=0, bias=True)
             if 'hm' in head:
                 fc.bias.data.fill_(-2.19)
             else:
@@ -270,64 +270,44 @@ class TomoResNet(nn.Module):
 
     def forward(self,x):
         #input is 1 * 64 * 512 * 512 
-        # print('input', x.shape)
         #reshape it to 64 * 1 * 512 * 512 to treat each slice individually
-        x = x.permute(1,0,2,3)
-        # print('x', x.shape)
+        if len(x.shape) > 4:
+            x = x.squeeze()
+        b, d, h, w = x.shape
+        # print('batch size', b)
+        if b > 1:
+            x = x.reshape((-1,h,w)).contiguous()
+            x = x.unsqueeze(1)
+        else:
+            x = x.permute(1,0,2,3)
+
         x = self.conv1(x)
-        # print('xconv1',x.shape) 
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
         x = self.layer1(x)
         x = self.layer2(x)
-        # print('x', x.shape)
         # x = self.layer3(x)
         # x = self.layer4(x)
 
         x = self.deconv_layers(x)
-        # print('x', x.shape)
         # now the output shape should be 64 * 64 * 128 * 128
         # we do a covolution so it becomes 64 * 1 * 128 * 128
-        # print('deconv_x', x.shape)
-        x = x.permute(1,0,2,3)
-        x = x.unsqueeze(0)
-        # x = self.conv2(x)
-        # # x = x.permute(1,0,2,3)
-        # # print('conv2', x.shape)
-        # x = self._channel_wise_reshape(x)
-        # # # print('reshape_x', x.shape)
-        # x = self.conv3(x)
-        # # # print('single conv,', x.shape)
-        # x = self._reverse_reshape(x)
-        # # print('reverse', x.shape)
-        # x = x.unsqueeze(1)
+        dd, ch, hh, ww = x.shape
+        if b > 1:
+            x = x.reshape((b, d, ch, hh, ww)).contiguous()
+            x = x.permute(0,2,1,3,4)
+        else:
+            x = x.permute(1,0,2,3)
+            x = x.unsqueeze(0)
         x = self.feature_head(x)
-        # print('x', x.shape)
         ret = {}
         for head in self.heads:
-            # head_out = head + '_out'
-            # classes = self.heads[head]
-            # print('head', head)
             out = self.__getattr__(head)(x)
             if 'proj' in head:
-                # print('out', out.shape)
-                # out = out.view(1, 1, 16, -1)
                 out = torch.nn.functional.normalize(out, dim=1)
-                # print('outt_feature', out.shape)
-                # print('after flatten', out.shape)
-            # print('out_feature', out_f.shape)
-            # out = self.__getattr__(head_out)(out_f)
-            # print('out_final', out.shape)
-            # out = out_conv(out)
-            # out = out.permute(1,0,2,3)
-            # out = out.unsqueeze(0)
             ret[head] = out
-            # ret[head_out] = out_f
-            # print('head', head)
-            # print('out', ret[head].shape)
-
         return [ret]
 
 
@@ -342,7 +322,7 @@ class TomoResNet(nn.Module):
         if 1:
             url = model_urls['resnet{}'.format(num_layers)]
             pretrained_state_dict = model_zoo.load_url(url)
-            # pretrained_state_dict = torch.load(url)
+            # url  = '/nfs/bartesaghilab/qh36/3D_picking/cet_pick/cet_pick/exp/tcla/classify_new/model_last.pth'
             print('=> loading pretrained model {}'.format(url))
             # self.load_state_dict(pretrained_state_dict, strict=False)
             # print('=> loading pretrained model {}'.format(url))
@@ -360,10 +340,10 @@ resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                101: (Bottleneck, [3, 4, 23, 3]),
                152: (Bottleneck, [3, 8, 36, 3])}
 
-def get_tomo_net_small(num_layers, heads, head_conv = 16):
+def get_tomo_net_small(num_layers, heads, head_conv = 32, last_k = 3):
     block_class, layers = resnet_spec[num_layers]
 
-    model = TomoResNet(block_class, layers, heads, head_conv=16)
+    model = TomoResNet(block_class, layers, heads, head_conv, last_k)
     model.init_weights(num_layers)
     return model
 
