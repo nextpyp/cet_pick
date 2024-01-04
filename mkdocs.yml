@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
-site_name: "" 
+site_name: "MiLoPYP" 
 site_url: "https://huangqinwen.github.io/tomopick.github.io/"
+site_dir: public
 nav:
   - Getting Started:
     - Installation: index.md
