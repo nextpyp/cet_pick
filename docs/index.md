@@ -2,7 +2,6 @@
 
 MiLoPYP is an open source, dataset-specific contrastive learning-based framework that enables two-step fast molecular pattern visualization followed by accurate protein localization without the need for manual annotation. During the exploration step, it learns an embedding space for 3D macromolecules such that similar structures are grouped together while dissimilar ones are separated. The embedding space is then projected into 2D and 3D which allows easy identification of the distribution of macromolecular structures across an entire dataset. During the refinement step, examples of proteins identified during the exploration step are selected and MiLoPYP learns to localize these proteins with high accuracy.
 
-
 Each step can be used separately. To use the refinement step only (tomogram particle detection), ground truth particle coordinates need to be provided for training. Typically, around 200 particles from several tomograms are needed to ensure good performance. Training coordinates can be obtained either manually or from the exploration module.
 
 ## Installation
@@ -23,10 +22,11 @@ After installing Anaconda:
     conda activate MiLoPYP
     ```
 
-1. Clone the `cet_pick` repo:
+1. Clone the `cet_pick` repo and `cd` to the corresponding directory:
 
     ```
     git clone https://github.com/nextpyp/cet_pick.git
+    cd cet_pick
     ```
 
 2. Install the requirements:
@@ -39,6 +39,12 @@ After installing Anaconda:
 
     ```
     pip install torch==1.11.0+cu102 torchvision==0.12.0+cu102 torchaudio==0.11.0 --extra-index-url https://download.pytorch.org/whl/cu102
+    ```
+
+4. Install `cet_pick` package and dependencies:
+
+    ```
+    pip install -e cet_pick
     ```
 
 ## Folder structure

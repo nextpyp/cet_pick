@@ -15,7 +15,7 @@ The sample dataset includes the following files:
 - `sample_train_explore_img.txt`: image file to use as input to train the exploration and refinement modules
 - `training_coordinates.txt`: coordinates for training the refinement module (converted from the parquet file above)
 
-Next, go to the folder where `main.py` and `test.py` are located. Create a folder named `data/` and move the `*.txt` files there. Create another folder named `sample_data/` and move the `*.rec`, `*.ali` and `*.tlt` files there:
+Next, go to the folder where `main.py` and `test.py` are located (this is simply to avoid having to enter absolute paths in the image file). Create a folder named `data/` and move the `*.txt` files there. Create another folder named `sample_data/` and move the `*.rec`, `*.ali` and `*.tlt` files there:
 
 ```
 ├── data
