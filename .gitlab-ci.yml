@@ -1,8 +1,11 @@
 image: python:3.8.8
 
-docs:
-  script:
+before_script:
     - pip install mkdocs-material
+
+docs:
+  stage: deploy
+  script:
     - mkdocs build --strict --verbose
   artifacts:
     paths:
