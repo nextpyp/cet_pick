@@ -96,6 +96,14 @@ wget https://nextpyp.app/data/milopyp_tubular_tutorial.tbz
 tar xvfz milopyp_tubular_tutorial.tbz
 ```
 
+MiLoPYP consists of two modules:
+
+- [Cellular content exploration](explore.md)
+
+- [Accurate particle localization](refine.md)
+
+The [quick tutorials](quick_tutorial.md) contain a step-by-step guide on how to run MiLoPYP on two sample datasets.
+
 <!-- For full documentation visit [mkdocs.org](https://www.mkdocs.org). -->
 
 <!-- ## Commands

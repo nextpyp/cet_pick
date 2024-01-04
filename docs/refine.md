@@ -191,10 +191,11 @@ For tubular-shaped targets, we just add the option `--fiber` to the inference co
 ```
 python test.py semi --arch unet_5 --dataset semi --exp_id fib_test --load_model exp/semi/fib_test/model_10.pth --down_ratio 2 --K 550 --order xzy --out_thresh 0.205 --test_img_txt sample_train_microtubule_img.txt --compress --gauss 1 --cutoff_z 10 --out_id new_out --last_k 5 --fiber --curvature_cutoff 0.03 --nms 3
 ```
+
 | Arguments   | Purpose                                                                       |
 |:-------------|:------------------------------------------------------------------------------|
 | `curvature_cutoff` | max curvature for fitted curve, segments with higher curvature will be discarded (microtubules should have small curvature) |
-| `r2_cutoff` | max residual for fitted curve, discard if above the residual/bad fitting |
+| `r2_cutoff` | max residual for fitted curve, discard if above the residual (bad fitting) |
 | `distance_cutoff` | distance cutoff for whether two points are connected in a graph |
 
 Here are some example outputs:
@@ -211,7 +212,8 @@ Here are some example outputs:
 
 
 
-#### Convert output coordinates to `.mod` format for visualization in IMOD
+#### Convert coordinates to IMOD format
+
 Make sure the output `*.txt` files do not include heatmap scores. Then, run:
 ```
 point2model -scat -sphere 5 output.txt output.mod
