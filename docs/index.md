@@ -72,10 +72,10 @@ MiLoPYP uses the following data structure:
 ```
 
 ### Sample dataset for globular-shaped protein
-Please find sample dataset of EMPIAR-10304 (including `.rec`, `.tlt`, `.ali`, parquet file from interactive session, sample train img txt for both exploration and refinement module, sample train coordinates txt for refinement module) [here](https://nextpyp.app/data/EMPIAR-10304_milopyp.tbz). For usage, download all files and save all `.rec`, `.tlt`, `.ali` files to `sample_data` directory, save all `.txt` files to `data` directory. 
+Please find sample dataset of EMPIAR-10304 (including `.rec`, `.tlt`, `.ali`, parquet file from interactive session, sample train img txt for both exploration and refinement module, sample train coordinates txt for refinement module) [here](https://nextpyp.app/data/milopyp_globular_tutorial.tbz). For usage, download all files and save all `.rec`, `.tlt`, `.ali` files to `sample_data` directory, save all `.txt` files to `data` directory. 
 
 ### Sample dataset for tubular shaped protein 
-Please find sample dataset of EMPIAR-10987 (including `.rec`, sample train images and coordinates txt for refinement module) [here](https://nextpyp.app/files/data/EMPIAR-10987_milopyp.tbz). For usage, download all files and save all `.rec`, files to `sample_data_microtubule` directory, save all `.txt` files to `data` directory. 
+Please find sample dataset of EMPIAR-10987 (including `.rec`, sample train images and coordinates txt for refinement module) [here](https://nextpyp.app/files/data/milopyp_tubular_tutorial.tbz). For usage, download all files and save all `.rec`, files to `sample_data_microtubule` directory, save all `.txt` files to `data` directory. 
 
 <!-- For full documentation visit [mkdocs.org](https://www.mkdocs.org). -->
 
