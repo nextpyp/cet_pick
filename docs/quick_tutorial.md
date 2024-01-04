@@ -5,7 +5,7 @@
 First, we need to download and decompress the data consisting of a subset of tilt-series and tomograms obtained from EMPIAR-10304:
 
 ```
-wget https://nextpyp.app/data/milopyp_globular_tutorial.tbz
+wget https://nextpyp.app/files/data/milopyp_globular_tutorial.tbz
 tar xvfz milopyp_globular_tutorial.tbz
 ```
 The sample dataset includes the following files:

@@ -84,7 +84,7 @@ MiLoPYP uses the following directory structure:
 This dataset contains a subset of tilt-series from EMPIAR-10304 and all the necessary metadata to run MiLoPYP. 
 To download and decompress, run:
 ```
-wget https://nextpyp.app/data/milopyp_globular_tutorial.tbz
+wget https://nextpyp.app/files/data/milopyp_globular_tutorial.tbz
 tar xvfz milopyp_globular_tutorial.tbz
 ```
 
@@ -92,7 +92,7 @@ tar xvfz milopyp_globular_tutorial.tbz
 This dataset contains a subset of tilt-series from EMPIAR-10987 and all the necessary metadata to run MiLoPYP. 
 To download and decompress, run:
 ```
-wget https://nextpyp.app/data/milopyp_tubular_tutorial.tbz
+wget https://nextpyp.app/files/data/milopyp_tubular_tutorial.tbz
 tar xvfz milopyp_tubular_tutorial.tbz
 ```
 
