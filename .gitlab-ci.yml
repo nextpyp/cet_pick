@@ -1,0 +1,16 @@
+image: python:3.8.8
+
+docs:
+  script:
+    - pip install mkdocs-material
+    - mkdocs gh-deploy --force
+    - pwd
+    - ls -larth
+    - mv docs/_build/html public
+  artifacts:
+    paths:
+      - public
+  only:
+    # only run this CI pipeline on master
+    refs:
+      - master
