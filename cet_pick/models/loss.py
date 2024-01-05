@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from cet_pick.models.utils import _transpose_and_gather_feat
-from pytorch_metric_learning import miners, losses
 import numpy as np
 from scipy import stats
 from torch.autograd import Variable

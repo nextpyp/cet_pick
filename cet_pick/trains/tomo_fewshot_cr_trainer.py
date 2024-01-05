@@ -15,10 +15,7 @@ from cet_pick.utils.debugger import Debugger
 from cet_pick.utils.post_process import tomo_post_process, tomo_cluster_postprocess
 from cet_pick.models.kmeans import MPKMeans
 
-
 import cv2
-
-from pytorch_metric_learning import miners, losses
 
 class TomoKMLoss(torch.nn.Module):
     def __init__(self, opt):

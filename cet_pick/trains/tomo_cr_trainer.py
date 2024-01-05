@@ -14,8 +14,6 @@ from cet_pick.utils.debugger import Debugger
 from cet_pick.utils.post_process import tomo_post_process
 import cv2
 
-from pytorch_metric_learning import miners, losses
-
 class TomoCRLoss(torch.nn.Module):
     def __init__(self, opt):
         super(TomoCRLoss, self).__init__()

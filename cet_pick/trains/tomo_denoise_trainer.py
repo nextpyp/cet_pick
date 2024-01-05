@@ -15,8 +15,6 @@ from cet_pick.utils.image import clip_img
 import cv2
 from cet_pick.models.decode import tomo_decode
 
-from pytorch_metric_learning import miners, losses
-
 class TomoDenoiseLoss(torch.nn.Module):
     """
     Trainer for PU Learner with Contrastive Regularization
