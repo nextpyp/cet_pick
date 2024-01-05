@@ -40,7 +40,7 @@ Here, we provide a simple procedure to generate the described training set from 
 
 First, create a `train/` directory to store all tomograms and their corresponding coordinate files. Each tomogram should have its own coordinate file: e.g., `train_1_img.rec` and `train_1_img_coord.txt`.
 
-For training coordinates, manual picking is performed on selected tomograms using [IMOD](https://bio3d.colorado.edu/imod/). For a single tomogram, full annotation is not required. Simply find some subregions and pick around 10\% to 70\% of the particles in that subregion. The subregion does not need to be big. After manual annotation in IMOD, save the resulting `.mod` files containing the annotated coordinates. Converting `.mod` files to `.txt` files can be done using `IMOD`'s `model2point` command. For example:
+For training coordinates, manual picking is performed on selected tomograms using [IMOD](https://bio3d.colorado.edu/imod/). For a single tomogram, full annotation is not required. Simply find some subregions and pick around 10% to 70% of the particles in that subregion. The subregion does not need to be big. After manual annotation in IMOD, save the resulting `.mod` files containing the annotated coordinates. Converting `.mod` files to `.txt` files can be done using `IMOD`'s `model2point` command. For example:
 ```
 model2point input.mod input.txt
 ```
