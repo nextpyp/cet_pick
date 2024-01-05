@@ -105,7 +105,7 @@ Finally, output coordinates will be saved into `exp/semi/sample_refinement/all_o
 
 ### Tubular-shaped targets
 
-Similar to the globular-shaped case, we download and decompress the data consisting of a subset of tilt-series and tomograms obtained from EMPIAR-10987:
+Similar to the globular-shaped case, we download and decompress the data consisting of a subset of tomograms obtained from EMPIAR-10987:
 ```
 wget https://nextpyp.app/files/data/milopyp_tubular_tutorial.tbz
 tar xvfz milopyp_tubular_tutorial.tbz
@@ -129,9 +129,9 @@ Assuming you have gone through the first part of the tutorial, now move the `*.t
 ├── test.py
 ```
 
-#### Cellular content exploration
+#### Cellular content exploration (3D Mode)
 
-This part is similar to the first case, reproduced here for completeness:
+This part is similar to the first case (here since we are only using tomograms, we use 3D mode for the first module), reproduced here for completeness:
 
 ```
 python simsiam_main.py simsiam3d --num_epochs 20 --exp_id fib_test --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --lr 1e-3 --train_img_txt 10987_microtubule_imgs.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
