@@ -22,17 +22,16 @@ After installing Anaconda:
     conda activate MiLoPYP
     ```
 
-1. Clone the `cet_pick` repo and `cd` to the corresponding directory:
+1. Clone the `cet_pick` repo:
 
     ```
     git clone https://github.com/nextpyp/cet_pick.git
-    cd cet_pick
     ```
 
 2. Install the requirements:
 
     ```
-    pip install -r requirements.txt
+    pip install -r cet_pick/requirements.txt
     ```
 
 3. Install PyTorch:
