@@ -128,7 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-data/
 exp/
 cryolo_pick_10453/
 new_general_cryolo_10304/
