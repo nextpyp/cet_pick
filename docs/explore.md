@@ -57,14 +57,14 @@ __Once all the files are generated, move the training files to the `data/` direc
 ### Training
 To train the exploration module in **2d3d** mode (using tilt-series and tomograms), run:
 ```
-python simsiam_main.py simsiam2d3d --num_epochs 300 --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --lr 1e-3 --train_img_txt sample_train_explore_img.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
+python simsiam_main.py simsiam2d3d --num_epochs 20 --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --lr 1e-3 --train_img_txt sample_train_explore_img.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
 ```
 In this mode, all training-related files will be saved into the folder `exp/simsiam2d3d/test_sample`, including a log file containing the values for the loss function and a list of all the arguments used for training.
 
 To train the exploration module in **3d** mode (using tomograms only), run:
 
 ```
-python simsiam_main.py simsiam3d --num_epochs 300 --exp_id test_sample --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --lr 1e-3 --train_img_txt sample_train_explore_img.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
+python simsiam_main.py simsiam3d --num_epochs 20 --exp_id test_sample --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --lr 1e-3 --train_img_txt sample_train_explore_img.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
 ```
 In this mode, all training-related files will be saved to the folder `exp/simsiam3d/test_sample`, including a log file containing values for the loss function and a list of all the arguments for training.
 
@@ -90,15 +90,15 @@ After training, tomograms/tilt-series can be mapped into the embeddings using th
 
 For the **2d3d** mode, run:
 ```
-python simsiam_test_hm_2d3d.py simsiam2d3d --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --test_img_txt sample_train_explore_img.txt --load_model exp/simsiam2d3d/test_sample/model_300.pth --gauss 0.8 --dog 3,5
+python simsiam_test_hm_2d3d.py simsiam2d3d --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --test_img_txt sample_train_explore_img.txt --load_model exp/simsiam2d3d/test_sample/model_20.pth --gauss 0.8 --dog 3,5
 ```
 
 For **3d** mode, run:
 
 ```
-python simsiam_test_hm_3d.py simsiam3d --exp_id test_sample --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --test_img_txt sample_train_explore_img.txt --load_model exp/simsiam3d/test_sample/model_300.pth --gauss 0.8 --dog 3,5
+python simsiam_test_hm_3d.py simsiam3d --exp_id test_sample --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --test_img_txt sample_train_explore_img.txt --load_model exp/simsiam3d/test_sample/model_20.pth --gauss 0.8 --dog 3,5
 ```
-In this example, we are using a trained model from the 300th epoch.
+In this example, we are using a trained model from the 20th epoch.
 
 ???+ tip "Note: Please make sure you use same architecture, bounding box size, gauss, and dog argument for both training and inference and select proper trained model"
     For example, if you use: `--bbox 36 --gauss 0.8 --dog 3,5` during training, make sure the same arguments are used for inference.
@@ -193,7 +193,7 @@ You should now be able to access the interactive session by visiting: `http://lo
 
 !!! warning
 
-    If you are running everything on a remote cluster and want to visualize the results through your local browser, you will first need to connect remote to local. This needs to be done for both images and the interactive session. To connect images with localhost port number 7000, use `ssh -N -f -L localhost:7000:localhost:7000 your_remote_login_address` on your local terminal. To connect to the interactive session using localhost at port number 33203, use `ssh -N -f -L localhost:33203:localhost:33203 your_remote_login_address`.
+    If you are running everything on a remote cluster and want to visualize the results through your local browser, you will first need to connect remote to local. This needs to be done for both images and the interactive session. To connect images with localhost port number 7000, use `ssh -N -f -L localhost:7000:localhost:7000 user@your_remote_login_address` on your local terminal. To connect to the interactive session using localhost at port number 33203, use `ssh -N -f -L localhost:33203:localhost:33203 user@your_remote_login_address`.
 
 
 In the interactive session, you should be able to visualize clusters of 3D embeddings, you will be able to adjust the number of points to be displayed in the cluster, coloring of each embedding based on the labels, select subclusters based on labels, and export selected subclusters.
