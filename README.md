@@ -5,5 +5,3 @@ MiLoPYP is a dataset-specific contrastive learning-based framework that enables 
 MiLoPYP can be run as a standalone application or through [nextPYP](https://nextpyp.app) (coming soon).
 
 For further information, read the [documentation](https://nextpyp.app/milopyp).
-
-The software is distributed open source under the [BSD 3-Clause license](../LICENSE).
