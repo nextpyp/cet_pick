@@ -105,7 +105,7 @@ Finally, output coordinates will be saved into `exp/semi/sample_refinement/all_o
 
 ### Tubular-shaped targets
 
-Here is the tutorial for the refinement module for tubular shaped targets in EMPIAR-10987. Similarly, we download and decompress the data consisting of a subset of tilt-series and tomograms obtained from EMPIAR-10987:
+Similar to the globular-shaped case, we download and decompress the data consisting of a subset of tilt-series and tomograms obtained from EMPIAR-10987:
 ```
 wget https://nextpyp.app/files/data/milopyp_tubular_tutorial.tbz
 tar xvfz milopyp_tubular_tutorial.tbz
@@ -113,37 +113,79 @@ tar xvfz milopyp_tubular_tutorial.tbz
 
 The sample dataset includes the following files:
 
-- `L4_ts_?.rec`: tomograms (downsampled to size 512x512x256)
-- `10987_microtubule_imgs.txt`: image file to use as input to the refinement modules
-- `10987_microtubule_coordinates.txt`: coordinates for training the refinement module 
+- `L4_ts_??.rec`: tomograms (downsampled to size 512x512x256)
+- `10987_microtubule_imgs.txt`: image file to use as input to the exploration and refinement modules
+- `10987_microtubule_coordinates.txt`: coordinates for training the refinement module
 
-(Assume you have gone throught the first part of the tutorial and have created `data/` folder.) Next,move the `*.txt` files to the `data/` folder. Go to the folder where `main.py` and `test.py` are located, create another folder named `sample_microtubule_data/` and move the `*.rec` files there: 
+Assuming you have gone through the first part of the tutorial, now move the `*.txt` files to the `data/` folder. Go to the folder where `main.py` and `test.py` are located, create another folder named `sample_microtubule_data/` and move the `*.rec` files there. The resulting directory structure should look like this:
 
 ```
 ├── data
 │   ├── 10987_microtubule_imgs.txt
 │   ├── 10987_microtubule_coordinates.txt
 ├── sample_microtubule_data
-│   ├── *.rec
+│   ├── L4_ts_??.rec
 ├── main.py
 ├── test.py
 ```
-#### Refined particle localization for tubular-shaped proteins
+
+#### Cellular content exploration
+
+This part is similar to the first case, reproduced here for completeness:
+
+```
+python simsiam_main.py simsiam3d --num_epochs 20 --exp_id fib_test --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --lr 1e-3 --train_img_txt 10987_microtubule_imgs.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
+```
+
+Once trained, we map tomograms/tilt-series into embeddings by running:
+
+```
+python simsiam_test_hm_3d.py simsiam3d --exp_id fib_test --bbox 36 --dataset simsiam3d --arch simsiam2d_18 --test_img_txt 10987_microtubule_imgs.txt --load_model exp/simsiam3d/fib_test/model_20.pth --gauss 0.8 --dog 3,5
+```
+
+In the folder `exp/simsiam3d/fib_test/`, you will find the file `all_output_info.npz` containing the embeddings, corresponding coordinates, original cropped patches from tomograms, and the names of corresponding tomograms.
+
+##### 2D visualization
+Run the following command:
+```
+python plot_2d.py --input exp/simsiam3d/fib_test/all_output_info.npz --n_cluster 48 --num_neighbor 40 --mode umap --path exp/simsiam3d/fib_test/ --min_dist_vis 1.3e-3
+```
+
+##### 3D visualization
+Run the following command:
+
+```
+python visualize_3dhm.py --input exp/simsiam3d/fib_test/all_output_info.npz --color exp/simsiam3d/fib_test/all_colors.npy --dir_simsiam exp/simsiam3d/fib_test/ --rec_dir sample_microtubule_data/
+```
+
+##### 3D interactive session
+
+To launch, run:
+
+```
+python phoenix_visualization.py --input exp/simsiam3d/fib_test/interactive_info_parquet.gzip
+```
+
+To save the downloaded parquet files from the interactive session in `txt` format, run:
+
+```
+python interactive_to_training_coords.py --input path_to_all_parquet_files --output training_coordinates.txt
+```
+
+
+#### Refined particle localization
 To train the model for refined particle localization, run:
 
 ```
 python main.py semi --down_ratio 2 --num_epochs 10 --bbox 12 --contrastive --exp_id fib_test --dataset semi --arch unet_5 --save_all --debug 4 --val_interval 1 --thresh 0.3 --cr_weight 1.0 --temp 0.07 --tau 0.01 --lr 1e-4 --train_img_txt 10987_microtubule_imgs.txt --train_coord_txt 10987_microtubule_coordinates.txt --val_img_txt 10987_microtubule_imgs.txt --val_coord_txt 10987_microtubule_coordinates.txt --K 550 --compress --gauss 1 --order xzy --last_k 5 --fiber
 ```
 
-To run inference on tubular shaped proteins, we add `--fiber` to the command as well, run:
+For inference, run:
 
 ```
-python test.py semi --arch unet_5 --dataset semi --exp_id fib_test --load_model exp/semi/fib_test/model_10.pth --down_ratio 2 --K 550 --order xzy --out_thresh 0.205 --test_img_txt 10987_microtubule_imgs.txt --compress --gauss 1 --cutoff_z 10 --out_id microtubule_out --last_k 5 --fiber --curvature_cutoff 0.03 --nms 3
+python test.py semi --arch unet_5 --dataset semi --exp_id fib_test --load_model exp/semi/fib_test/model_20.pth --down_ratio 2 --K 550 --order xzy --out_thresh 0.205 --test_img_txt 10987_microtubule_imgs.txt --compress --gauss 1 --cutoff_z 10 --out_id microtubule_out --last_k 5 --fiber --curvature_cutoff 0.03 --nms 3
 ```
 
-Note, here we are using the same `.txt` image file for both training and testing. In actual applications, tomograms in training/testing files should be different and the testing file should include all `.rec` files.
+Here we are using the same `.txt` image file for both training and testing. In actual applications, tomograms in training/testing files should be different and the testing file should include all `.rec` files in the dataset.
 
-Finally, output coordinates will be saved into `exp/semi/fib_test/microtubule_out/*.txt`.
-
-
-
+The final coordinates will be saved into `exp/semi/fib_test/microtubule_out/*.txt`.
