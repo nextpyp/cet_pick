@@ -100,10 +100,12 @@ python simsiam_test_hm_3d.py simsiam3d --exp_id test_sample --bbox 36 --dataset 
 ```
 In this example, we are using a trained model from the 20th epoch.
 
-???+ tip "Note: Please make sure you use same architecture, bounding box size, gauss, and dog argument for both training and inference and select proper trained model"
+???+ tip "Note: make sure you use the same architecture, box size, gauss, and dog parameters for both training and inference tasks"
     For example, if you use: `--bbox 36 --gauss 0.8 --dog 3,5` during training, make sure the same arguments are used for inference.
     To find the arguments you used for training, go to the output folder and check the file `opts.txt`.
-    For trained model selection, check the loss in the file `log.txt` and select models with lower loss.
+
+???+ tip "Note: selection of best trained model"
+    To select the best model, check the loss in the file `log.txt` and select models with lower loss.
 
 Output from inference is saved into a `.npz` file that contains the embeddings, corresponding coordinates, original cropped patches from tomograms, and names of corresponding tomograms. The output is saved to the folder `exp/simsiam2d3d/test_sample/all_output_info.npz` (for **2d3d** mode), and to `exp/simsiam3d/test_sample/all_output_info.npz` (for **3d** mode).
 

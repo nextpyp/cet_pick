@@ -2,13 +2,15 @@
 For the refinement step, MiLoPYP learns to localize proteins of interest with high accuracy, when trained using sparsely annotated data. This step can be used without the previous exploration step.
 
 ### Input preparation
+
 The training set should include two files:
-1. `.txt` file with the tomogram names and paths to the tomogram files
-2. `.txt` file with the tomogram names and corresponding `x,y,z`-coordinate files
 
-- __When using the refinement module after the exploration module__, we can use the same image file and the generated coordinates file from the exploration module.
+- `.txt` file with the tomogram names and paths to the tomogram files
+- `.txt` file with the tomogram names and corresponding `x,y,z`-coordinate files
 
-- __When using the refinement module alone__, some manual labeling is needed to generate the training coordinates. A corresponding train image file will need to be generated as well.
+__When using the refinement module after the exploration module__, we can use the same image file and the generated coordinates file from the exploration module.
+
+__When using the refinement module alone__, some manual labeling is needed to generate the training coordinates. A corresponding train image file will need to be generated as well.
 
 In the first case, the `*.txt` file should have the following format:
 
@@ -131,7 +133,7 @@ Here are some sample outputs generated in the `debug/` folder:
 
     === "Threshold selection"
 
-        Threshold selection can be estimated based on the detection output (`.txt` file that contains x,y,z coordinates and corresponding detection scores). It can also be estimated from `*_pred_out.png` images in the `debug/` folder that marks identified particles above a certain threshold. If there are many false positives, consider using a higher threshold.
+        Threshold selection can be estimated based on the detection output `.txt` file that contains x,y,z coordinates and corresponding detection scores). It can also be estimated from `*_pred_out.png` images in the `debug/` folder that marks identified particles above a certain threshold. If there are many false positives, consider using a higher threshold.
 
 #### Tubular-shaped targets
 

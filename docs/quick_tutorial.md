@@ -36,7 +36,7 @@ Next, go to the folder where `main.py` and `test.py` are located (this is simply
 To start training, run:
 
 ```
-python simsiam_main.py simsiam2d3d --num_epochs 300 --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --lr 1e-3 --train_img_txt sample_train_explore_img.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
+python simsiam_main.py simsiam2d3d --num_epochs 20 --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --lr 1e-3 --train_img_txt sample_train_explore_img.txt --batch_size 256 --val_intervals 20 --save_all --gauss 0.8 --dog 3,5
 ```
 
 Outputs produced by this command include: the loss for each epoch, trained models saved every 20 epochs, and a file with all program options.
@@ -44,7 +44,7 @@ Outputs produced by this command include: the loss for each epoch, trained model
 Once trained, we will map tomograms/tilt-series into embeddings by running:
 
 ```
-python simsiam_test_hm_2d3d.py simsiam2d3d --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --test_img_txt sample_train_explore_img.txt --load_model exp/simsiam2d3d/test_sample/model_300.pth --gauss 0.8 --dog 3,5
+python simsiam_test_hm_2d3d.py simsiam2d3d --exp_id test_sample --bbox 36 --dataset simsiam2d3d --arch simsiam2d3d_18 --test_img_txt sample_train_explore_img.txt --load_model exp/simsiam2d3d/test_sample/model_20.pth --gauss 0.8 --dog 3,5
 ```
 
 In the folder `exp/simsiam2d3d/test_sample/`, you will find the file `all_output_info.npz` containing the embeddings, corresponding coordinates, original cropped patches from tomograms, and the names of corresponding tomograms.
