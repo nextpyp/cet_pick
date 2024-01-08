@@ -157,7 +157,7 @@ class TOMOPreProjAngleSelect3DVol(Dataset):
         patches = None 
         for ind, an in enumerate(angles):
             tx, ty = self.convert_tomo_to_tilt(tomo_coord, an, tomo_size)
-            if tx <= self.crop_size_x//1.8 or tx >= self.tomo_size[1]-self.crop_size_x//1.8 or ty <= self.crop_size_y//1.8 or ty >= self.tomo_size[1]-self.crop_size_y//1.8:
+            if tx <= self.crop_size_x//1.8 or tx >= self.tomo_size[0]-self.crop_size_x//1.8 or ty <= self.crop_size_y//1.8 or ty >= self.tomo_size[1]-self.crop_size_y//1.8:
                         continue 
             patch = v[ind, ty - self.crop_size_y//2: ty + self.crop_size_y//2, tx - self.crop_size_x//2: tx + self.crop_size_x//2].copy()
             if patches is None:
@@ -223,7 +223,7 @@ class TOMOPreProjAngleSelect3DVol(Dataset):
 
                 tomo_x, tomo_y, tomo_z = positions[p][0], positions[p][1], positions[p][2]
                 # check tomo coords:
-                if tomo_x > self.crop_size_x//1.8 and tomo_x < self.tomo_size[1]-self.crop_size_x//1.8 and tomo_y >= self.crop_size_y//1.8 and tomo_y <= self.tomo_size[1]-self.crop_size_y//1.8:
+                if tomo_x > self.crop_size_x//1.8 and tomo_x < self.tomo_size[0]-self.crop_size_x//1.8 and tomo_y >= self.crop_size_y//1.8 and tomo_y <= self.tomo_size[1]-self.crop_size_y//1.8:
 
                     x_c_1, y_c_1, z_c_1 = tomo_x, tomo_y, np.clip(tomo_z + 1,1,tomo_size_z-2)
                     x_c_2, y_c_2, z_c_2 = tomo_x, tomo_y, np.clip(tomo_z - 1,1,tomo_size_z-2)
