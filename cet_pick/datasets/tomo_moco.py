@@ -77,7 +77,7 @@ class TOMOMoco(Dataset):
 		
 		if self.split == 'train' or self.split == 'val':
 			image_list = pd.read_csv(self.data_dir, sep='\t')
-			images = load_tomos_from_list(image_list.image_name, image_list.path, order=self.opt.order, compress=self.opt.compress, denoise=self.opt.gauss)
+			images = load_tomos_from_list(image_list.image_name, image_list.rec_path, order=self.opt.order, compress=self.opt.compress, denoise=self.opt.gauss)
 			
 			coords = pd.read_csv(self.coord_dir, sep='\t')
 			num_particles = len(coords)
@@ -135,8 +135,8 @@ class TOMOMoco(Dataset):
 		else:
 			image_list = pd.read_csv(self.data_dir, sep='\t')
 			names = image_list.image_name
-			paths = image_list.path
-			ims = load_tomos_from_list(image_list.image_name, image_list.path,order=self.opt.order, compress=self.opt.compress, denoise=self.opt.gauss)
+			paths = image_list.rec_path
+			ims = load_tomos_from_list(image_list.image_name, image_list.rec_path,order=self.opt.order, compress=self.opt.compress, denoise=self.opt.gauss)
 			images = []
 			for k, v in ims.items():
 				images.append(v)
