@@ -133,13 +133,13 @@ class ParticleMocoDataset(data.Dataset):
 				# z_c_r = random.sample(sampled_z_center, 1)[0]
 
 			x_c_r, y_c_r, z_c_r = x_c_r + off_x_r, y_c_r + off_y_r, z_c_r + off_z_r
-			x_c_r, y_c_r, z_c_r = np.clip(x_c_r, 17, height//2 - 17), np.clip(y_c_r, 17, height//2 - 17), np.clip(z_c_r, 3, depth - 3)
+			x_c_r, y_c_r, z_c_r = np.clip(x_c_r, 17, height//2 - 17), np.clip(y_c_r, 17, width//2 - 17), np.clip(z_c_r, 3, depth - 3)
 			x_c_r, y_c_r, z_c_r = int(x_c_r), int(y_c_r), int(z_c_r)
 			
 			# x_c, y_c, z_c = gt_det[loc]
 			x_c, y_c, z_c = curr_ann[:3]
-			x_c, y_c, z_c = x_c + off_x, y_c + off_y, z_c + off_z
-			x_c, y_c, z_c = np.clip(x_c, 17, height//2 - 17), np.clip(y_c, 17, height//2 - 17), np.clip(z_c, 3, depth - 3)
+			x_c, y_c, z_c = x_c + off_x, y_c + off_y, z_c 
+			x_c, y_c, z_c = np.clip(x_c, 17, height//2 - 17), np.clip(y_c, 17, width//2 - 17), np.clip(z_c, 3, depth - 3)
 			x_c, y_c, z_c = int(x_c), int(y_c), int(z_c)
 
 			up_xc, up_yc = int(x_c*self.opt.down_ratio), int(y_c*self.opt.down_ratio)
