@@ -43,7 +43,7 @@ class Debugger(object):
 
         color_map = (img * colors).max(axis=2).astype(np.uint8)
 
-        color_map = cv2.resize(color_map, (output_res[0], output_res[1]))
+        color_map = cv2.resize(color_map, (output_res[1], output_res[0]))
         return color_map
 
     def add_blend_img(self, back, fore, img_id = 'blend', trans=0.7):
