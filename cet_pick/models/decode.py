@@ -36,7 +36,7 @@ def _convert_1d_to_3d(inds, d, h, w):
     z_coord = torch.floor(inds.float()/(h*w)).int()
     t = inds.int() - (z_coord * h * w)
     y_coord = torch.floor(t.float() / w)
-    x_coord = t % h
+    x_coord = t % w
     
     return z_coord, y_coord, x_coord
 def non_maximum_suppression_3d(x, d, scale=1.0, threshold=-np.inf):
