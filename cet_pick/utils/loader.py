@@ -2,7 +2,7 @@ from __future__ import print_function, division
 
 import os
 import glob
-
+import math
 import numpy as np
 from PIL import Image
 import torch
@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from numpy.lib import stride_tricks
 from scipy.ndimage import gaussian_filter
-import pandas as pd 
+import pandas as pd
 
 def quantize(x, mi=-2.5, ma=2, dtype=np.uint8):
     if mi is None:
@@ -27,12 +27,12 @@ def quantize(x, mi=-2.5, ma=2, dtype=np.uint8):
 def load_rec(path, order='xyz', compress = False, is_tilt=False):
     # print('path', path)
     with mrcfile.open(path, permissive=True) as mrc:
-        rec = mrc.data 
+        rec = mrc.data
     if order == 'xzy' or order == 'xyz':
         if order == 'xzy':
             rec = np.swapaxes(rec, 2, 1)
-        x, y, z = rec.shape 
-        new_z = int(z//2)
+        x, y, z = rec.shape
+        new_z = math.ceil(z/2)
         # new_z = z
         if compress:
             new_slices = np.zeros([new_z, x, y])
@@ -51,14 +51,14 @@ def load_rec(path, order='xyz', compress = False, is_tilt=False):
             for i in range(z):
                 new_slice = rec[:,:,i]
                 if is_tilt:
-                    
+
                     new_slice = (new_slice-new_slice.mean())/new_slice.std()
                 new_slices[j,:,:] = new_slice
                 j += 1
         if not is_tilt:
             new_slices = (new_slices - np.mean(new_slices))/np.std(new_slices)
     if order == 'zxy':
-        z, x, y = rec.shape 
+        z, x, y = rec.shape
 
         new_z = int(z//2)
         if compress:
@@ -82,7 +82,7 @@ def load_rec(path, order='xyz', compress = False, is_tilt=False):
                 j += 1
         if not is_tilt:
             new_slices = (new_slices - np.mean(new_slices))/np.std(new_slices)
-        
+
     return new_slices
 
 def preprocess(mrc, denoise=0, is_tilt=False):
@@ -91,15 +91,15 @@ def preprocess(mrc, denoise=0, is_tilt=False):
             dn_im = []
             for sli in mrc:
                 dd = gaussian_filter(sli, sigma=denoise)
-                dd = (dd-dd.mean())/dd.std() 
+                dd = (dd-dd.mean())/dd.std()
                 dd = quantize(dd)
                 dd = cv2.normalize(dd, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-                dn_im.append(dd) 
+                dn_im.append(dd)
             im = np.asarray(dn_im)
         else:
             im = gaussian_filter(mrc, sigma=denoise)
             im = (im-im.mean())/im.std()
-            im = quantize(im,mi=-3,ma=3) 
+            im = quantize(im,mi=-3,ma=3)
             im = (im - np.min(im))/(np.max(im) - np.min(im))
     else:
         if is_tilt:
@@ -107,14 +107,14 @@ def preprocess(mrc, denoise=0, is_tilt=False):
             for sli in mrc:
                 # dd = gaussian_filter(sli, sigma=sigma)
                 dd = sli
-                dd = (dd-dd.mean())/dd.std() 
+                dd = (dd-dd.mean())/dd.std()
                 dd = quantize(dd)
                 dd = cv2.normalize(dd, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-                dn_im.append(dd) 
+                dn_im.append(dd)
             im = np.asarray(dn_im)
         else:
             im = (mrc-mrc.mean())/mrc.std()
-            im = quantize(im) 
+            im = quantize(im)
             im = (im - np.min(im))/(np.max(im) - np.min(im))
     return im 
 
@@ -156,10 +156,10 @@ def load_tomos_and_angles_from_list(names, tomo_paths, angle_paths, order='xzy',
         im = load_rec(tomo_path, order=order, compress=compress, is_tilt = tilt)
         tilt_angle = load_tlt(angle_path)
         im = preprocess(im, denoise=denoise, is_tilt=tilt)
-        images[name] = im  
+        images[name] = im
         angles[name] = tilt_angle
     return images, angles
-    
+
 def load_tomos_from_list(names, paths, order='xzy', compress=False, denoise=0, tilt=False):
     images = {}
     for name, path in zip(names, paths):
@@ -167,12 +167,12 @@ def load_tomos_from_list(names, paths, order='xzy', compress=False, denoise=0, t
         # im = preprocess(im, denoise=denoise, is_tilt = tilt, sigma=1)
         im = preprocess(im, denoise=denoise, is_tilt = tilt)
 
-        images[name] = im 
+        images[name] = im
     return images
 
 def load_tomos_from_list_nopre(names, paths, order='xzy', compress=False, denoise=False, tilt=False):
     images = {}
     for name, path in zip(names, paths):
         im = load_rec(path, order=order, compress=compress, is_tilt = tilt)
-        images[name] = im 
+        images[name] = im
     return images
