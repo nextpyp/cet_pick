@@ -56,7 +56,7 @@ class TomodetDetector(BaseDetector):
 
         out_detect = open(path+'/{}.txt'.format(name), 'w+')
         hm = hm.detach().cpu().numpy()[0][0]
-        max_z, max_x, max_y = hm.shape
+        max_z, max_y, max_x = hm.shape
         max_x, max_y = max_x*2, max_y*2
         hm = np.swapaxes(hm, 1, 0)
         out_hm = path+'/{}_hm.mrc'.format(name)
