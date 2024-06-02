@@ -97,10 +97,8 @@ class TOMOMoco(Dataset):
 				num_objs = len(coords)
 				output_h, output_w = height // self.opt.down_ratio, width // self.opt.down_ratio
 				num_class = self.num_classes
-				# if self.opt.pn:
 				hm = np.zeros((depth, output_h, output_w), dtype=np.float32)
-				# else:
-				# 	hm = np.zeros((depth, output_h, output_w), dtype=np.float32) 
+
 				ind = np.zeros((num_objs), dtype=np.int64)
 				draw_gaussian = draw_umich_gaussian_3d
 				gt_det = []

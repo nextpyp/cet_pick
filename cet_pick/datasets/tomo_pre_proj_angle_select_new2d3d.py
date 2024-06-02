@@ -101,7 +101,6 @@ class TOMOPreProjAngleSelect2D3D(Dataset):
 
     def extract_3d_tomo(self, rec, tomo_coord):
         x, y, z = tomo_coord[0], tomo_coord[1], tomo_coord[2]
-        # print('tomo_coord', tomo_coord)
         if self.opt.compress:
             z = int(z // 2)
         patch_3d = rec[z, y - self.crop_size_y//2:y + self.crop_size_y//2, x - self.crop_size_x//2:x + self.crop_size_x//2].copy()

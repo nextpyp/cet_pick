@@ -34,29 +34,24 @@ class ParticleMocoDataset(data.Dataset):
 
 	def __getitem__(self, index):
 		if self.split == 'train':
-			# tomo = self.tomos[index]
 			curr_ann = self.all_anns[index]
-			# print('curr ann', curr_ann)
 			tomo_ind = curr_ann[-1]
 			tomo = self.tomos[tomo_ind]
 			hm = self.hms[tomo_ind]
 			ind = self.inds[tomo_ind]
 			gt_det = self.gt_dets[tomo_ind]
 			name = self.names[tomo_ind]
-			# hm = self.hms[index]
-			# ind = self.inds[index]
-			# gt_det = self.gt_dets[index]
+
 
 			flip_prob = np.random.random()
 			# rot_time = np.random.randint()
 
 			# name = self.names[index]
-			depth, height, width = tomo.shape[0], tomo.shape[2], tomo.shape[1]
+			depth, height, width = tomo.shape[0], tomo.shape[1], tomo.shape[2]
 			# num_of_samples = gt_det.shape[0]
 			# locs = np.random.randint(0, num_of_samples, 2)
 			# loc = locs[0]
 			# loc = curr_ann[:3]
-			# print('loc', loc)
 			offs_x_y = [-4,-3,-2, -1, 0, 1, 2,3,4]
 			offs_z = [-1, 0, 1]
 			off_x = random.sample(offs_x_y, 1)[0]
@@ -69,11 +64,12 @@ class ParticleMocoDataset(data.Dataset):
 			p = np.random.rand()
 			rot = np.random.randint(0, 4)
 			if self.opt.pn:
-				if p <= 1:
+				if p <= 0.5:
 					selected = choice([i for i in range(self.num_samples) if i not in [index]]) 
 					selected_ann = self.all_anns[selected]
 					tomo_ind_p = selected_ann[-1]
 					tomo_p = self.tomos[tomo_ind_p]
+					depth_p, height_p, width_p = tomo_p.shape[0], tomo_p.shape[1], tomo_p.shape[2]
 					hm_p = self.hms[tomo_ind_p]
 					ind_p = self.inds[tomo_ind_p]
 					gt_det_p = self.gt_dets[tomo_ind_p]
@@ -81,20 +77,22 @@ class ParticleMocoDataset(data.Dataset):
 
 					x_c_r, y_c_r, z_c_r = 0,0,0
 					# off_x_r, off_y_r, off_z_r = 0,0,0
-					off_x_r = np.random.randint(0, 512)
-					off_y_r = np.random.randint(0, 512)
-					off_z_r = np.random.randint(0, 128)
+					off_x_r = np.random.randint(0, width_p)
+					off_y_r = np.random.randint(0, height_p)
+					off_z_r = np.random.randint(0, depth_p)
 				else:
 					selected = choice([i for i in range(self.num_samples) if i not in [index]]) 
 					selected_ann = self.all_anns[selected]
 
 					tomo_ind_p = selected_ann[-1]
 					tomo_p = self.tomos[tomo_ind_p]
+					depth_p, height_p, width_p = tomo_p.shape[0], tomo_p.shape[1], tomo_p.shape[2]
 					hm_p = self.hms[tomo_ind_p]
 					ind_p = self.inds[tomo_ind_p]
 					gt_det_p = self.gt_dets[tomo_ind_p]
 					name_p = self.names[tomo_ind_p]
-					x_c_r, y_c_r, z_c_r = np.random.randint(32, height-32), np.random.randint(32, height-32), np.random.randint(5, depth-5)
+					
+					x_c_r, y_c_r, z_c_r = selected_ann[:3]
 					off_x_r = np.random.randint(-32, 32)
 					off_y_r = np.random.randint(-32, 32)
 					off_z_r = np.random.randint(-5, 5)
@@ -104,6 +102,7 @@ class ParticleMocoDataset(data.Dataset):
 					selected_ann = self.all_anns[selected]
 					tomo_ind_p = selected_ann[-1]
 					tomo_p = self.tomos[tomo_ind_p]
+					depth_p, height_p, width_p = tomo_p.shape[0], tomo_p.shape[1], tomo_p.shape[2]
 					hm_p = self.hms[tomo_ind_p]
 					ind_p = self.inds[tomo_ind_p]
 					gt_det_p = self.gt_dets[tomo_ind_p]
@@ -119,6 +118,7 @@ class ParticleMocoDataset(data.Dataset):
 					selected_ann = self.all_anns[selected]
 					tomo_ind_p = selected_ann[-1]
 					tomo_p = self.tomos[tomo_ind_p]
+					depth_p, height_p, width_p = tomo_p.shape[0], tomo_p.shape[1], tomo_p.shape[2]
 					hm_p = self.hms[tomo_ind_p]
 					ind_p = self.inds[tomo_ind_p]
 					gt_det_p = self.gt_dets[tomo_ind_p]
@@ -133,33 +133,25 @@ class ParticleMocoDataset(data.Dataset):
 				# z_c_r = random.sample(sampled_z_center, 1)[0]
 
 			x_c_r, y_c_r, z_c_r = x_c_r + off_x_r, y_c_r + off_y_r, z_c_r + off_z_r
-			x_c_r, y_c_r, z_c_r = np.clip(x_c_r, 17, height//2 - 17), np.clip(y_c_r, 17, width//2 - 17), np.clip(z_c_r, 3, depth - 3)
+			x_c_r, y_c_r, z_c_r = np.clip(x_c_r, 17, width_p//2 - 17), np.clip(y_c_r, 17, height_p//2 - 17), np.clip(z_c_r, 3, depth_p - 3)
 			x_c_r, y_c_r, z_c_r = int(x_c_r), int(y_c_r), int(z_c_r)
 			
-			# x_c, y_c, z_c = gt_det[loc]
+
 			x_c, y_c, z_c = curr_ann[:3]
 			x_c, y_c, z_c = x_c + off_x, y_c + off_y, z_c 
-			x_c, y_c, z_c = np.clip(x_c, 17, height//2 - 17), np.clip(y_c, 17, width//2 - 17), np.clip(z_c, 3, depth - 3)
+			x_c, y_c, z_c = np.clip(x_c, 17, width//2 - 17), np.clip(y_c, 17, height//2 - 17), np.clip(z_c, 3, depth - 3)
 			x_c, y_c, z_c = int(x_c), int(y_c), int(z_c)
 
 			up_xc, up_yc = int(x_c*self.opt.down_ratio), int(y_c*self.opt.down_ratio)
 			up_xc_r, up_yc_r = int(x_c_r * self.opt.down_ratio), int(y_c_r * self.opt.down_ratio)
 
-			# if p <= 0.5:
-			# cropped_tomo_c = tomo_p[z_c_r-1:z_c_r+2, up_yc_r-32:up_yc_r+32, up_xc_r-32:up_xc_r+32]
-			# cropped_hm_c = hm_p[z_c_r-1:z_c_r+2, y_c_r-16:y_c_r+16, x_c_r-16:x_c_r+16]
+
 			cropped_tomo_c = tomo_p[z_c_r-3:z_c_r+3, up_yc_r-32:up_yc_r+32, up_xc_r-32:up_xc_r+32]
 			cropped_hm_c = hm_p[z_c_r-3:z_c_r+3, y_c_r-16:y_c_r+16, x_c_r-16:x_c_r+16]
-			# print('cropped_hm-c', cropped_hm_c)
-			# else:
-			# 	cropped_tomo_c = tomo_p[z_c_r-1:z_c_r+2, up_yc_r-32:up_yc_r+32, up_xc_r-32:up_xc_r+32]
-			# 	cropped_hm_c = hm[z_c_r-1:z_c_r+2, y_c_r-16:y_c_r+16, x_c_r-16:x_c_r+16]
 
-			# cropped_tomo = tomo[z_c-1:z_c+2, up_yc-32:up_yc+32, up_xc-32:up_xc+32]
-			# cropped_hm = hm[z_c-1:z_c+2, y_c-16:y_c+16, x_c-16:x_c+16]
 			cropped_tomo = tomo[z_c-3:z_c+3, up_yc-32:up_yc+32, up_xc-32:up_xc+32]
 			cropped_hm = hm[z_c-3:z_c+3, y_c-16:y_c+16, x_c-16:x_c+16]
-			# print('cropped_hm', cropped_hm)
+
 			expand_tomo = np.expand_dims(cropped_tomo, axis=0)
 			expand_hm = np.expand_dims(cropped_hm, axis=0)
 			expand_tomo_c = np.expand_dims(cropped_tomo_c, axis=0)
@@ -202,13 +194,7 @@ class ParticleMocoDataset(data.Dataset):
 			else:
 				ret ={'input': tomo.astype(np.float32), 'hm': hm, 'ind': ind, 'gt_det': gt_det}
 			
-		# if self.opt.contrastive:
-		# 	ret.update({'soft_neg': soft_negs})
 
-
-
-		# if self.opt.reg_offset:
-		# 	ret.update({'reg':reg})
 		if self.opt.debug > 0:
 			
 			meta = {'gt_det':gt_det, 'name': name}
