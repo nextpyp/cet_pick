@@ -209,7 +209,6 @@ class TOMOPreProjAngleSelect3DVol(Dataset):
         save_npy_v = False
         for k, v in orig_recs.items():
             names.append(k)
-            # angle = angles[k]
             rec = orig_recs[k]
 
             tomo_size_z, tomo_size_y, tomo_size_x = rec.shape
