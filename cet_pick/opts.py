@@ -234,7 +234,7 @@ class opts(object):
       if i < rest_batch_size % (len(opt.gpus) - 1):
         slave_chunk_size += 1
       opt.chunk_sizes.append(slave_chunk_size)
-    print('training chunk_sizes:', opt.chunk_sizes)
+    print('Training chunk_sizes:', opt.chunk_sizes)
     # need opt root dir
     # opt.root_dir = os.path.join(os.path.dirname(__file__), '..', '..')
     opt.root_dir = os.getcwd()

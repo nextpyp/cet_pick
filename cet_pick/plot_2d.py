@@ -75,7 +75,7 @@ def main(args):
     spec_clustering.fit(centroids_kmeans)
     y_pred = spec_clustering.labels_
     n_clusters_ = len(set(y_pred))
-    print('actual number of cluster is:', n_clusters_)
+    print('Actual number of clusters is:', n_clusters_)
     final_lbs = []
     for temp_i in I:
         temp_i = temp_i[0]
@@ -107,8 +107,8 @@ def main(args):
     out_parquet = os.path.join(args.path, 'interactive_info_parquet.gzip')
     all_info_df.to_parquet(out_parquet, compression='gzip')
 
-    print('done saving parquet.....')
-    print('plotting 2D visualization plot....')
+    print('Done saving parquet')
+    print('Plotting 2D visualization plot')
     if args.mode == 'tsne':
         projection= TSNE(n_components=2, perplexity = args.num_neighbor, verbose=1, random_state=args.seed, n_iter=1000)
     if args.mode == 'umap':
@@ -137,7 +137,7 @@ def main(args):
         shown_images_idx.append(i)
     color_out = os.path.join(args.path, 'all_colors.npy')
     np.save(color_out, colors)
-    print('Saved color out for 3D tomogram visualization...')
+    print('Saved color outpot for 3D tomogram visualization')
     for idx in shown_images_idx:
 #         # print('figure size', rcp['figure.figsize'][0])
 #     # lb = final_lbs[idx]

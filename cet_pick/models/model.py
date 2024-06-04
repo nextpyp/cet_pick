@@ -73,7 +73,7 @@ def create_model(arch, heads, head_conv, last_k=0):
 def load_model_selflabel(model, model_path,optimizer = None, resume = False, lr = None, lr_step = None, model_only = False):
     start_epoch = 0 
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
-    print('loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
+    print('Loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
     state_dict_ = checkpoint['state_dict']
     all_heads = [k for k in state_dict_.keys() if 'cluster_head' in k]
     best_head_weight = state_dict_['cluster_head.%d.weight' %(checkpoint['best_loss_head'])]
@@ -84,7 +84,7 @@ def load_model_selflabel(model, model_path,optimizer = None, resume = False, lr 
 def load_model_scan(model, model_path, optimizer=None, resume=False, lr=None, lr_step=None, model_only=False):
     start_epoch = 0
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
-    print('loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
+    print('Loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
     best_loss = checkpoint['best_loss']
     best_loss_head = checkpoint['best_loss_head']
     state_dict_ = checkpoint['state_dict']
@@ -140,7 +140,7 @@ def load_pretrain_scan(model, model_path, optimizer=None, resume=False,
                lr=None, lr_step=None, model_only = False):
     start_epoch = 0
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
-    print('loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
+    print('Loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
     state_dict_ = checkpoint['state_dict']
     state_dict = {}
 
@@ -196,7 +196,7 @@ def load_model(model, model_path, optimizer=None, resume=False,
                lr=None, lr_step=None, model_only = False):
     start_epoch = 0
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
-    print('loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
+    print('Loaded {}, epoch {}'.format(model_path, checkpoint['epoch']))
     state_dict_ = checkpoint['state_dict']
     state_dict = {}
 
@@ -256,7 +256,7 @@ def save_center(path, epoch, center):
 
 def load_center(center_path):
     ckpt = torch.load(center_path, map_location=lambda storage, loc: storage)
-    print('loaded {}, epoch {}'.format(center_path, ckpt['epoch']))
+    print('Loaded {}, epoch {}'.format(center_path, ckpt['epoch']))
     center = ckpt['center']
     return center
 
