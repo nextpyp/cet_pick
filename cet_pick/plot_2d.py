@@ -137,7 +137,7 @@ def main(args):
         shown_images_idx.append(i)
     color_out = os.path.join(args.path, 'all_colors.npy')
     np.save(color_out, colors)
-    print('Saved color outpot for 3D tomogram visualization')
+    print('Saved color output for 3D tomogram visualization')
     for idx in shown_images_idx:
 #         # print('figure size', rcp['figure.figsize'][0])
 #     # lb = final_lbs[idx]
@@ -163,8 +163,8 @@ def main(args):
     ax.set_aspect('equal', adjustable='box')
 
 # # figname = os.path.join(out_path, out_name) + '_landscape.png'
-    out_2d_name = os.path.join(args.path, '2d_visualization_out.png')
-    fig.savefig(out_2d_name)
+    out_2d_name = os.path.join(args.path, '2d_visualization_out.svgz')
+    fig.savefig(out_2d_name, bbox_inches='tight', pad_inches=0.1)
 
     projection_lb = umap.UMAP(n_neighbors=args.num_neighbor, min_dist=args.min_dist_umap,random_state=args.seed)
 
@@ -208,13 +208,13 @@ def main(args):
         
         coord_txt = '%d' % (lb)
         ax.add_artist(img_box)
-        ax.text(embeddings_2d[idx][0]-0.015, embeddings_2d[idx][1]+0.015, coord_txt)
+        ax.text(embeddings_2d[idx][0]-0.015, embeddings_2d[idx][1]+0.015, coord_txt, color='magenta', fontweight='bold', fontsize=16)
     ratio = 1. / ax.get_data_ratio()
 
     ax.set_aspect('equal', adjustable='box')
 
-    out_2d_name = os.path.join(args.path, '2d_visualization_labels.png')
-    fig.savefig(out_2d_name)
+    out_2d_name = os.path.join(args.path, '2d_visualization_labels.svgz')
+    fig.savefig(out_2d_name, bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == '__main__':
     import argparse
