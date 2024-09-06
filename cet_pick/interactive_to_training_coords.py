@@ -3,6 +3,7 @@ import phoenix as px
 import numpy as np 
 import glob
 import argparse
+import os
 
 def add_arguments(parser):
     parser.add_argument('--input',type=str, help='path to folder of all exported parquet from interactive session')
@@ -11,7 +12,7 @@ def add_arguments(parser):
     return parser 
 
 def main(args):
-	all_parquet = glob.glob(args.input + '*.parquet')
+	all_parquet = glob.glob(os.path.join(args.input, '*.parquet'))
 	print('using the following parquet...', all_parquet)
 	file = open(args.output,'w')
 	header = ['image_name',	'x_coord','y_coord','z_coord']
