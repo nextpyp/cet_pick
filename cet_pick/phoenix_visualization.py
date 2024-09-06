@@ -43,7 +43,7 @@ def main(args):
    
 		print("Using port {}".format(port))
 		train_df['image'] = train_df['image'].str.replace(f'localhost:{DEFAULT_PORT}', f'localhost:{port}')
-		train_df.to_parquet(args.input, compression='gzip')
+		# train_df.to_parquet(args.input, compression='gzip') # Optionally: Save the updated dataframe with new port
 
 	train_schema = px.Schema(
 		prediction_label_column_name="label",
