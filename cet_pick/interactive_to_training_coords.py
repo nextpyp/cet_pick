@@ -1,5 +1,4 @@
 import pandas as pd
-import phoenix as px
 import numpy as np 
 import glob
 import argparse
@@ -13,9 +12,10 @@ def add_arguments(parser):
 
 def main(args):
 	all_parquet = glob.glob(os.path.join(args.input, '*.parquet'))
-	print('using the following parquet...', all_parquet)
+	if os.path.isfile(args.input):
+ 		all_parquet = [args.input]
 	file = open(args.output,'w')
-	header = ['image_name',	'x_coord','y_coord','z_coord']
+	header = ['image_name', 'x_coord','y_coord','z_coord']
 	file.write('\t'.join(header)+'\n')
 	for pq in all_parquet:
 		df_p = pd.read_parquet(pq)
@@ -25,6 +25,7 @@ def main(args):
 			n = names[i]
 			x,y,z = coords[i]
 
+			rec_path = os.path.join(os.getcwd(), "mrc", n+".rec")
 			if args.if_double:
 				z = str(float(z) * 2)
 			line = [n,x,y,z]
