@@ -23,7 +23,7 @@ def find_next_available_port(start_port=7000, host='127.0.0.1'):
                 
 def add_arguments(parser):
     parser.add_argument('--input',type=str, help='input parquet file with labels, embeddings and other info')
-    parser.add_argument('--port', type=int, help='port number to run the app')
+    parser.add_argument('--port', type=int, default=7000, help='port number to run the app')
     return parser 
 
 def main(args):
