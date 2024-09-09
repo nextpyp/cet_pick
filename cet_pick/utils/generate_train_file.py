@@ -10,6 +10,7 @@ def add_arguments(parser):
     parser.add_argument('-o', '--out',help='output name')
     parser.add_argument('-r', '--ord', help='order for x-y-z', default = 'xzy')   
     parser.add_argument('-c', '--inference', action='store_true', help='whether to generate files for inference')
+    parser.add_argument('--img_only', action = 'store_true',help='generate image training file only, no coordinates file')
     return parser 
 
 
@@ -34,42 +35,42 @@ def main(args):
         ent = [name, path]
         f1.write('\t'.join(ent) + '\n')
     f1.close()
+    if not args.img_only:
+        all_txts = os.path.join(args.dir, "*.txt")
+        txt_f = glob.glob(all_txts)
 
-    all_txts = os.path.join(args.dir, "*.txt")
-    txt_f = glob.glob(all_txts)
+        if not args.inference:
+            f2 = open(out_coordinates_file, 'w')
+            header = ['image_name','x_coord', 'y_coord', 'z_coord']
+            f2.write('\t'.join(header) + '\n')
+        
+        
+            for path in txt_f:
+                name = os.path.basename(path)[:-4]
+                if name[-10:] != 'train_imgs':
+                    print(name[-10:])
+                    with open(path, 'rb') as f:
+                        for j, i in enumerate(f):
+                            i = i.split()
+                            if args.ord == 'xzy':
+                                x = str(int(float(i[0])))
 
-    if not args.inference:
-        f2 = open(out_coordinates_file, 'w')
-        header = ['image_name','x_coord', 'y_coord', 'z_coord']
-        f2.write('\t'.join(header) + '\n')
-    
-    
-        for path in txt_f:
-            name = os.path.basename(path)[:-4]
-            if name[-10:] != 'train_imgs':
-                print(name[-10:])
-                with open(path, 'rb') as f:
-                    for j, i in enumerate(f):
-                        i = i.split()
-                        if args.ord == 'xzy':
-                            x = str(int(float(i[0])))
+                                z = str(int(float(i[1])))
+                                y = str(int(float(i[2])))
+                            elif args.ord == 'xyz':
+                                x = str(int(float(i[0])))
 
-                            z = str(int(float(i[1])))
-                            y = str(int(float(i[2])))
-                        elif args.ord == 'xyz':
-                            x = str(int(float(i[0])))
+                                z = str(int(float(i[2])))
+                                y = str(int(float(i[1])))
+                            elif args.ord =='zxy':
+                                x = str(int(float(i[1])))
 
-                            z = str(int(float(i[2])))
-                            y = str(int(float(i[1])))
-                        elif args.ord =='zxy':
-                            x = str(int(float(i[1])))
-
-                            z = str(int(float(i[0])))
-                            
-                            y = str(int(float(i[2])))
-                        ent = [name, x, y, z]
-                        f2.write('\t'.join(ent) + '\n')
-        f2.close()
+                                z = str(int(float(i[0])))
+                                
+                                y = str(int(float(i[2])))
+                            ent = [name, x, y, z]
+                            f2.write('\t'.join(ent) + '\n')
+            f2.close()
 
 
 if __name__=='__main__':

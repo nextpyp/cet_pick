@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from cet_pick.models.utils import _transpose_and_gather_feat
-# from pytorch_metric_learning import miners, losses
 import numpy as np
 from scipy import stats
 from torch.autograd import Variable
@@ -245,7 +244,6 @@ def _pu_ge_loss(pred, gt, tau, criteria, slack=1, entropy_penalty=0):
     log_binom = Variable(log_binom)
     # ge_penalty = -torch.mean(log_binom*q_discrete)
     ge_penalty = -torch.sum(log_binom*q_discrete)
-    # print('ge penalty....', ge_penalty)
     if entropy_penalty > 0:
         q_entropy = 0.5 * (torch.log(q_var) + np.log(2*np.pi) + 1)
         ge_penalty = ge_penalty + q_entropy * entropy_penalty
@@ -274,12 +272,10 @@ def _pu_neg_loss(pred, gt, tau, beta, gamma):
 
     # num_pos = true_pos_inds.float().sum() + soft_pos_inds.float().sum()
     num_pos = true_pos_inds.float().sum()
-    # print('num_pos', num_pos)
     num_unlabeld = unlabeled_inds.float().sum()
     num_soft = soft_pos_inds.float().sum()
     # total_pos = (num_pos+num_soft)/(num_pos+num_unlabeld+num_soft)
     # tau_use = tau - total_pos/2
-    # print('num_soft', num_soft)
     soft_pow_weights = torch.pow(1 - gt, 4)
     soft_pow_neg_weights = torch.pow(gt, 4)
     pos_loss = torch.log(pred) * torch.pow(1 - pred, 2) * true_pos_inds
@@ -605,6 +601,7 @@ class UnbiasedConLoss(nn.Module):
         else:
             labels_postivies = labels.eq(1).float()
 
+        num_of_positives = labels_postivies.sum()
         num_of_pixels = all_features.shape[0]
         pos_ratio = num_of_positives / num_of_pixels
         num_of_negatives = 2 * (num_of_pixels - num_of_positives)
@@ -693,8 +690,7 @@ class UnbiasedConLoss(nn.Module):
         elif debiased_loss_unsup !=0 and debiased_loss_rem == 0:
             debiased_loss_unsup = debiased_loss_unsup.mean()
         debiased_loss_sup = debiased_loss_sup.mean()
-        print('debiased_loss_sup', debiased_loss_sup)
-        print('debiased_loss_unsup', debiased_loss_unsup)
+
 
         return debiased_loss_sup, debiased_loss_unsup
 

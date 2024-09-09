@@ -72,10 +72,10 @@ class TomoConvUNet(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        print('input x after conv', x.shape)
+
         x = self.unet(x) 
         dd, ch, hh, ww = x.shape
-        print('in x', x.shape)
+
         if b > 1:
             x = x.reshape((b, d, ch, hh, ww)).contiguous()
             x = x.permute(0,2,1,3,4)
@@ -83,7 +83,7 @@ class TomoConvUNet(nn.Module):
             x = x.permute(1,0,2,3)
             x = x.unsqueeze(0)
         x = self.feature_head(x)
-        print('out x', x.shape)
+
         ret = {}
         for head in self.heads:
             out = self.__getattr__(head)(x)
@@ -155,7 +155,7 @@ class TomoUNet(nn.Module):
        
         x = self.unet(x) 
         dd, ch, hh, ww = x.shape
-        print('in x', x.shape)
+
         if b > 1:
             x = x.reshape((b, d, ch, hh, ww)).contiguous()
             x = x.permute(0,2,1,3,4)
@@ -163,7 +163,7 @@ class TomoUNet(nn.Module):
             x = x.permute(1,0,2,3)
             x = x.unsqueeze(0)
         x = self.feature_head(x)
-        print('out x', x.shape)
+
         ret = {}
         for head in self.heads:
             out = self.__getattr__(head)(x)

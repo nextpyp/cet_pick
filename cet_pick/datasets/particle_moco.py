@@ -159,7 +159,7 @@ class ParticleMocoDataset(data.Dataset):
 			paired_tomo_aug = np.concatenate((expand_tomo_aug, expand_tomo_c_aug), axis=0)
 			paired_hm_aug = np.concatenate((expand_hm_aug, expand_hm_c_aug), axis=0)
 
-			ret ={'input':paired_tomo.astype(np.float32),'input_aug': paired_tomo_aug.astype(np.float32), 'hm': paired_hm, 'hm_aug': paired_hm_aug, 'ind': ind, 'gt_det': gt_det, 'flip_prob': flip_prob, 'pair_inp':paired_tomo.astype(np.float32), 'pair_hm': paired_hm, 'paried_inp_aug': paired_tomo_aug.astype(np.float32), 'paired_hm_aug': paired_hm_aug,'rot': rot}
+			ret ={'input':paired_tomo.astype(np.float32),'input_aug': paired_tomo_aug.astype(np.float32), 'hm': paired_hm, 'hm_aug': paired_hm_aug, 'ind': ind, 'gt_det': gt_det, 'flip_prob': flip_prob, 'pair_inp':paired_tomo.astype(np.float32), 'pair_hm': paired_hm, 'paried_inp_aug': paired_tomo_aug.astype(np.float32), 'paired_hm_aug': paired_hm_aug}
 		else:
 			tomo = self.tomos[index]
 			hm = self.hms[index]
