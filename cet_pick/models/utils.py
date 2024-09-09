@@ -8,6 +8,82 @@ import pickle
 from torch import Tensor
 from typing import Tuple
 
+def insize_from_outsize_xyz(layers, outsize_xy, outsize_z):
+    """ calculates in input size of a convolution stack given the layers and output size """
+    for layer in layers[::-1]:
+        # print(layer.children())
+        if hasattr(layer, 'kernel_size'):
+            kernel_size = layer.kernel_size # assume square
+            if type(kernel_size) is tuple:
+                if len(kernel_size) == 2:
+                    kernel_size_xy = kernel_size[0]
+                    kernel_size_z = 1
+                if len(kernel_size) == 3:
+                    kernel_size_xy = kernel_size[1]
+                    kernel_size_z = kernel_size[0]
+            else:
+                if getattr(layer,'dim') == 3:
+                    kernel_size_xy, kernel_size_z = kernel_size, kernel_size
+                if getattr(layer, 'dim') == 2:
+                    kernel_size_xy, kernel_size_z = kernel_size, 1
+
+        else:
+            kernel_size_xy, kernel_size_z = 1, 1
+        if hasattr(layer, 'stride'):
+            stride = layer.stride
+            if type(stride) is tuple:
+                if len(stride) == 2:
+                    stride_xy = stride[0]
+                    stride_z = 1
+                if len(stride) == 3:
+                    stride_xy = stride[1]
+                    stride_z = stride[0]
+            else:
+                if getattr(layer,'dim') == 3:
+                    stride_xy, stride_z = stride, stride 
+                if getattr(layer, 'dim') == 2:
+                    stride_xy, stride_z = stride, 1
+
+        else:
+            stride_xy, stride_z = 1, 1
+        if hasattr(layer, 'padding'):
+            pad = layer.padding
+            if type(pad) is tuple:
+                if len(pad) == 2:
+                    pad_xy = pad[0]
+                    pad_z = 0
+                if len(pad) == 3:
+                    pad_xy = pad[1]
+                    pad_z = pad[0]
+            else:
+                if getattr(layer,'dim') == 3:
+                    pad_xy, pad_z = pad, pad  
+                if getattr(layer, 'dim') == 2:
+                    pad_xy, pad_z = pad, 0
+
+        else:
+            pad_xy, pad_z = 0, 0
+        if hasattr(layer, 'dilation'):
+            dilation = layer.dilation
+            if type(dilation) is tuple:
+                if len(dilation) == 2:
+                    dilation_xy = dilation[0]
+                    dilation_z = 1 
+                if len(dilation) == 3:
+                    dilation_xy = dilation[1]
+                    dilation_z = dilation[0]
+            else:
+                if getattr(layer,'dim') == 3:
+                    dilation_xy, dilation_z = dilation, dilation
+                if getattr(layer,'dim') == 2:
+                    dilation_xy, dilation_z = dilation, 1
+        else:
+            dilation_xy, dilation_z = 1, 1
+
+        outsize_xy = (outsize_xy-1)*stride_xy + 1 + (kernel_size_xy-1)*dilation_xy - 2*pad_xy
+        outsize_z = (outsize_z-1)*stride_z+1+(kernel_size_z-1)*dilation_z-2*pad_z 
+    return outsize_xy, outsize_z
+    
 def clip_img(img: Tensor, inplace: bool = False) -> Tensor:
     """Clip tensor data so that it is within a valid image range. That is
     between 0-1 for float images and 0-255 for int images. Values are clamped
@@ -81,40 +157,40 @@ class Shift2d(nn.Module):
         
 
 def _center_distance(centers1, centers2):
-	# center1 is output from tomo decode with B * Num * 5 shape
-	# center 2 is ground truth with B * Num * 3
-	preds_coord = centers1[:,:, :3]
-	dist_mat = torch.cdist(preds_coord, centers2)
-	return dist_mat
+    # center1 is output from tomo decode with B * Num * 5 shape
+    # center 2 is ground truth with B * Num * 3
+    preds_coord = centers1[:,:, :3]
+    dist_mat = torch.cdist(preds_coord, centers2)
+    return dist_mat
 
 
 def _sigmoid(x):
-	y = torch.clamp(x.sigmoid_(), min=1e-4, max=1-1e-4)
-	return y
+    y = torch.clamp(x.sigmoid_(), min=1e-4, max=1-1e-4)
+    return y
 
 def _gather_feat(feat, ind, mask=None):
-	# input is N, D*W*H, C
-	dim = feat.size(2)
-	# [N, max] -> [N, max, 1] -> [N, max, C]
-	ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
-	feat = feat.gather(1, ind)
-	if mask is not None:
-		mask = mask.unsqueeze(2).expand_as(feat)
-		feat = feat[mask]
-		feat = feat.view(-1, dim)
-	return feat 
+    # input is N, D*W*H, C
+    dim = feat.size(2)
+    # [N, max] -> [N, max, 1] -> [N, max, C]
+    ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
+    feat = feat.gather(1, ind)
+    if mask is not None:
+        mask = mask.unsqueeze(2).expand_as(feat)
+        feat = feat[mask]
+        feat = feat.view(-1, dim)
+    return feat 
 
 
 
 
 def _transpose_and_gather_feat(feat, ind):
-	# transform from N, C, D, W, H to N, D, W, H, C
-	feat = feat.permute(0,2,3,4,1).contiguous()
-	# N, D, W, H, C to N, D*W*H, C
-	feat = feat.view(feat.size(0), -1, feat.size(4))
-	feat = _gather_feat(feat, ind)
+    # transform from N, C, D, W, H to N, D, W, H, C
+    feat = feat.permute(0,2,3,4,1).contiguous()
+    # N, D, W, H, C to N, D*W*H, C
+    feat = feat.view(feat.size(0), -1, feat.size(4))
+    feat = _gather_feat(feat, ind)
 
-	return feat
+    return feat
 
 def insize_from_outsize_3d(layers, outsize_z, outsize_xy):
     """ calculates in input size of a convolution stack given the layers and output size """
@@ -299,4 +375,4 @@ def zero_sphere(vol):
     vol[np.where(r>1)] = 0
     return vol
 
-	
+    

@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import json
 import cv2
+from PIL import Image
 import os
 import random
 from utils.image import gaussian_radius, draw_umich_gaussian_3d, draw_msra_gaussian_3d, flip_ud, flip_lr
@@ -40,6 +41,7 @@ class ParticleMocoClassDataset(data.Dataset):
 
 	def __getitem__(self, index):
 		if self.split == 'train':
+			# print('index', index)
 			h = index
 			g = h//2**56 
 			h = h-g*2**56 
@@ -56,6 +58,7 @@ class ParticleMocoClassDataset(data.Dataset):
 			gt_det = self.gt_dets[i]
 			ind = self.inds[i]
 			label = hm.ravel()[coord]
+			# print('label', label)
 			depth, height, width = tomo.shape[0], tomo.shape[2], tomo.shape[1]
 			x_c, y_c, z_c = self._convert_coord1d_to_3d(coord, width, height)
 			flip_prob = np.random.random()
@@ -64,34 +67,10 @@ class ParticleMocoClassDataset(data.Dataset):
 			# name = self.names[index]
 			name = self.names[i]
 			
-			# num_of_samples = gt_det.shape[0]
-			# loc = random.randint(0, num_of_samples-1)
-			# loc_2 = random.randint(0, num_of_samples-1)
-			# # print('loc', loc)
-			# # print('height')
-			# offs_x_y = [-2, -1, 0, 1, 2]
-			# 		# offs_z = [-2, -3, 3, 2]
-			# offs_z = [-1, 0, 1]
-			# off_x = random.sample(offs_x_y, 1)[0]
-			# off_y = random.sample(offs_x_y, 1)[0]
-			# off_z = random.sample(offs_z, 1)[0]
-			# sampled_z_center = list(np.arange(5, depth-5))
-			# sampled_x_center = list(np.arange(17, height//2 - 17))
-			# # # print('sampled_x_center', sampled_x_center)
-			# sampled_y_center = list(np.arange(17, height//2 - 17))
-			# x_c_r = random.sample(sampled_x_center, 1)[0]
-			# x_c_r, y_c_r, z_c_r = gt_det[loc_2]
-			# x_c_r, y_c_r, z_c_r = x_c_r + off_x, y_c_r + off_y, z_c_r + off_z
-			# x_c_r, y_c_r, z_c_r = np.clip(x_c_r, 17, height//2 - 17), np.clip(y_c_r, 17, height//2 - 17), np.clip(z_c_r, 3, depth - 3)
-			# x_c_r, y_c_r, z_c_r = int(x_c_r), int(y_c_r), int(z_c_r)
-			# # y_c_r = random.sample(sampled_y_center, 1)[0]
-			# # z_c_r = random.sample(sampled_z_center, 1)[0]
 			
-			# x_c, y_c, z_c = gt_det[loc]
-			# x_c, y_c, z_c = x_c + off_x, y_c + off_y, z_c + off_z
 			left_z, left_xy = self.width_z//2, self.width_xy//2
 			right_z, right_xy = left_z+1, left_xy+1
-			x_c, y_c, z_c = np.clip(x_c, left_xy, height - right_xy), np.clip(y_c, left_xy, height - right_xy), np.clip(z_c, left_z, depth - right_z)
+			x_c, y_c, z_c = np.clip(x_c, left_xy*2, width - right_xy*2), np.clip(y_c, left_xy*2, height - right_xy*2), np.clip(z_c, left_z, depth - right_z)
 			# x_c, y_c, z_c = int(x_c), int(y_c), int(z_c)
 			# print('x_c, y_c, z_c', x_c, y_c, z_c)
 			# up_xc, up_yc = int(x_c*self.opt.down_ratio), int(y_c*self.opt.down_ratio)
@@ -113,7 +92,7 @@ class ParticleMocoClassDataset(data.Dataset):
 			# print('cropped_tomo', cropped_tomo.shape)
 			# print('cropped_tomo_c', cropped_tomo_c.shape)
 			# print('cropped_hm_c', cropped_hm_c.shape)
-			expand_tomo = np.expand_dims(cropped_tomo, axis=0)
+			# expand_tomo = np.expand_dims(cropped_tomo, axis=0)
 			# expand_hm = np.expand_dims(cropped_hm, axis=0)
 			# expand_tomo_c = np.expand_dims(cropped_tomo_c, axis=0)
 			# expand_hm_c = np.expand_dims(cropped_hm_c, axis=0)
@@ -129,6 +108,7 @@ class ParticleMocoClassDataset(data.Dataset):
 				# cropped_hm_aug = flip_ud(cropped_hm)
 				# cropped_tomo_c_aug = flip_ud(cropped_tomo_c)
 				# cropped_hm_c_aug = flip_ud(cropped_hm_c)
+			# print()
 			# expand_tomo_aug = np.expand_dims(cropped_tomo_aug, axis=0)
 			# expand_hm_aug = np.expand_dims(cropped_hm_aug, axis=0)
 			# expand_tomo_c_aug = np.expand_dims(cropped_tomo_c_aug, axis=0)
@@ -137,18 +117,29 @@ class ParticleMocoClassDataset(data.Dataset):
 			# paired_hm_aug = np.concatenate((expand_hm_aug, expand_hm_c_aug), axis=0)
 			# print('paried_tomo', paired_tomo)
 			# print('paried_hm', paired_hm)
+			# print('cropped tomo aug', cropped_tomo_aug.shape)
+
 			ret = {'input': cropped_tomo.astype(np.float32), 'input_aug': cropped_tomo_aug.astype(np.float32), 'label': label}
 			# ret = {'input': img.astype(np.float32), 'input_aug': aug_img.astype(np.float32), 'hm': hm, 'hm_aug': hm_aug,'reg_mask': reg_mask, 'ind': ind, 'class': clas_z, 'gt_det': gt_det}
 			# ret ={'input':cropped_tomo.astype(np.float32),'input_aug': cropped_tomo_aug.astype(np.float32), 'hm': cropped_hm, 'hm_aug': cropped_hm_aug, 'ind': ind, 'gt_det': gt_det, 'flip_prob': flip_prob, 'pair_inp':paired_tomo.astype(np.float32), 'pair_hm': paired_hm, 'paried_inp_aug': paired_tomo_aug.astype(np.float32), 'paired_hm_aug': paired_hm_aug}
 			# ret ={'input':paired_tomo.astype(np.float32),'input_aug': paired_tomo_aug.astype(np.float32), 'hm': paired_hm, 'hm_aug': paired_hm_aug, 'ind': ind, 'gt_det': gt_det, 'flip_prob': flip_prob, 'pair_inp':paired_tomo.astype(np.float32), 'pair_hm': paired_hm, 'paried_inp_aug': paired_tomo_aug.astype(np.float32), 'paired_hm_aug': paired_hm_aug}
+			# print('ret', len(ret))
 		else:
 			tomo = self.tomos[index]
 			hm = self.hms[index]
 			ind = self.inds[index]
 			gt_det = self.gt_dets[index]
 			name = self.names[index]
-			ret ={'input': tomo.astype(np.float32), 'hm': hm, 'ind': ind, 'gt_det': gt_det}
-
+			
+			if tomo.shape[0] >=85 and tomo.shape[1] > 128:
+				center_r = tomo.shape[1] // 2
+				center_c = tomo.shape[2] // 2
+				tomo_sec = tomo[:85, center_r-64:center_r+64, center_c-64:center_c+64]
+				hm_sec = hm[:85, center_r-64:center_r+64, center_c-64:center_c+64]
+				ret = {'input': tomo_sec.astype(np.float32), 'hm': hm_sec, 'ind': ind, 'gt_det': gt_det, 'inp_orig': tomo.astype(np.float32),'hm_orig': hm}
+			else:
+			# ret ={'input': tomo.astype(np.float32), 'hm': hm, 'ind': ind, 'gt_det': gt_det}
+				ret ={'input': tomo.astype(np.float32), 'hm': hm, 'ind': ind, 'gt_det': gt_det}
 		# if self.opt.contrastive:
 		# 	ret.update({'soft_neg': soft_negs})
 
@@ -158,7 +149,8 @@ class ParticleMocoClassDataset(data.Dataset):
 		# 	ret.update({'reg':reg})
 		if self.opt.debug > 0:
 			
-			meta = {'gt_det':gt_det, 'name': name}
+			# meta = {'gt_det':gt_det, 'name': name}
+			meta = {'name': name}
 			ret['meta'] = meta 
 		return ret
 

@@ -22,8 +22,11 @@ class BaseDetector(object):
         print('Creating model...')
         self.model = create_model(opt.arch, opt.heads, opt.head_conv,last_k = opt.last_k)
         self.model = load_model(self.model, opt.load_model)
+        if opt.task == 'semiclass':
+            self.model.fill()
         self.model = self.model.to(opt.device)
         self.model.eval()
+
 
 
         self.max_per_image = 900
@@ -68,13 +71,16 @@ class BaseDetector(object):
         detections = []
 
         images = image_or_path_or_tensor
-        images = images.to(self.opt.device, non_blocking=True)
+        if self.opt.task != 'semiclass':
+            images = images.to(self.opt.device, non_blocking=True)
 
         # torch.cuda().synchronize()
         pre_process_time = time.time()
         pre_time += 0
-
+        # out_hm = self.process(images, return_time=True)
+        # return out_hm
         output, dets, hm, forward_time = self.process(images, return_time=True)
+        # return dets, hm
         batch, cat, depth, height, width = hm.size()
         # torch.cuda.synchronize()
         net_time += forward_time - pre_process_time
@@ -85,6 +91,8 @@ class BaseDetector(object):
             self.debug(debugger, images, dets, output)
 
         dets, name = self.post_process(dets, meta, z_dim_tot=depth)
+        # print('dets', dets)
+        # print('name', name)
         if self.opt.gpus[0] >= 0: 
             torch.cuda.synchronize()
         post_process_time = time.time()

@@ -36,7 +36,7 @@ class opts(object):
                                   'set load_model to model_last.pth '
                                   'in the exp dir if load_model is empty.') 
     self.parser.add_argument('--fiber', action='store_true', help='whether trying to identify fiber. changes in postprocessing and initialization')
-
+    self.parser.add_argument('--spike', action='store_true', help='whether trying to identify spikes. changes in postprocessing' )
     # system
     self.parser.add_argument('--gpus', default='0', 
                              help='-1 for CPU, use comma for multiple gpus')
@@ -195,12 +195,12 @@ class opts(object):
     opt.lr_step = [int(i) for i in opt.lr_step.split(',')]
 
     opt.fix_res = not opt.keep_res
-    # print('Fix size testing.' if opt.fix_res else 'Keep resolution testing.')
+    print('Fix size testing.' if opt.fix_res else 'Keep resolution testing.')
 
     if opt.head_conv == -1: # init default head_conv
       if opt.task == 'simsiam' or opt.task == 'simsiam2d3d' or opt.task == 'simsiam3d':
         opt.head_conv = 128 
-      if opt.task =='semi':
+      if opt.task =='semi' or opt.task == "semiclass":
         opt.head_conv = 32
       # opt.head_conv = 256 if 'dla' in opt.arch else 16
     opt.pad = 127 if 'hourglass' in opt.arch else 31
@@ -272,8 +272,9 @@ class opts(object):
     
     if opt.task == 'tomo':
       opt.heads = {'hm': opt.num_classes, 'proj': 16}
-    elif opt.task == 'cr' or opt.task == 'semi' or opt.task =='semi3d':
+    elif opt.task == 'cr' or opt.task == 'semi' or opt.task =='semi3d' or opt.task == 'semiclass':
       opt.heads = {'hm': opt.num_classes, 'proj':opt.head_conv}
+    # elif opt.
     elif opt.task == 'fs':
       opt.heads = {'proj':16}
     elif opt.task == 'tcla':
@@ -298,6 +299,7 @@ class opts(object):
       'tomo': {'default_resolution': [512, 512], 'num_classes': 1, 'dataset': 'tomo'},
       'cr':{'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'cr'},
       'semi': {'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'semi'},
+      'semiclass': {'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'semiclass'},
       'semi3d': {'default_resolution':[64, 64], 'num_classes':1, 'dataset': 'semi3d'},
       'fs':{'default_resolution':[128, 128], 'num_classes':1, 'dataset': 'fs'},
       'simsiam':{'default_resolution':[24, 24], 'num_classes':256, 'dataset':'simsiam'},

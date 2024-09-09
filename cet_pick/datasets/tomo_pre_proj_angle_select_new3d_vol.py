@@ -46,22 +46,6 @@ class TOMOPreProjAngleSelect3DVol(Dataset):
         self.hm_shape = None
         self.sigma1 = sigma1 
         self.tomos, self.names, self.sub_vols_3d, self.sub_vols_sets_3d = self.load_data()
-        # self.transforms = T.Compose([
-        #     T.ToPILImage(),
-        #     T.RandomHorizontalFlip(0.5),
-        #     T.RandomVerticalFlip(0.5),
-        #     # T.GaussianBlur(3, sigma=(0.1,0.2)),
-        #     # T.RandomRotation(90),
-        #     T.RandomAffine(degrees=0, translate=(0.1,0.2)),
-        #     # AdjustBrightness(),
-        #     # InvertColor(),
-        #     T.CenterCrop(self.size[1]),
-        #     T.ToTensor(),
-        #     # CornerErasing(p=0.3,scale = (0.01, 0.02), ratio = (0.5, 1.5)),
-        #     # CenterOut(crop_dim = 12),
-        #     T.Normalize((self.mean_subvols3d),(self.std_subvols3d))]
-        #     )
-
         self.transforms = T.Compose([
             T.ToPILImage(),
             T.RandomHorizontalFlip(0.5),

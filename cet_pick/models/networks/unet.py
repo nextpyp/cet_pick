@@ -825,7 +825,7 @@ class UNet(nn.Module):
 
         # create the decoder pathway and add to a list
         # - careful! decoding only requires n_blocks-1 blocks
-        for i in range(n_blocks - 2):
+        for i in range(n_blocks - 1):
             ins = outs
             outs = ins // 2
             planar = n_blocks - 2 - i in self.planar_blocks

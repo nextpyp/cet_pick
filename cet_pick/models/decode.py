@@ -105,6 +105,21 @@ def _topk(scores, K = 900):
 #     # print('-----fiber detect------', detections.shape)
 #     return detections
 
+def tomo_decode_classify(heat, r, threshold):
+    heat = heat.unsqueeze(0)
+    batch, cat, depth, height, width = heat.size()
+
+    heat = heat.squeeze().cpu().numpy()
+    scores, coords = non_maximum_suppression_3d(heat, r, threshold=threshold)
+    scores = scores
+    scores = torch.from_numpy(scores).unsqueeze(1)
+
+    coords = torch.from_numpy(coords)
+
+    detections = torch.cat([coords, scores], dim = 1)
+    return detections
+    # return scores, coords
+
 def tomo_decode(heat, kernel = 3, reg=None, K = 900, if_fiber = False):
     batch, cat, depth, height, width = heat.size()
 

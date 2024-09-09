@@ -37,19 +37,9 @@ class TOMOPreProjAngle(Dataset):
 		self.tomo_size = tomo_size
 		self.split = split
 		self.hm_shape = None
-		# self.images, self.targets, self.names = self.load_data()
 		self.slice_range = slice_range
 		self.tomos, self.names, self.subvols = self.load_data()
-		# self.transforms = tio.Compose([
-		# 	tio.RandomBlur(std=(0,1),p=0.15),
-		# 	tio.RandomNoise(p=0.5),
-		# 	tio.RandomAffine(scales=(1,1,1,1,1,1), translation=(0,0,0,0,0,0,),degrees=(0,60,0,0,0,0),p=0.75),
-		# 	tio.transforms.Crop((self.size[0]//8, self.size[1]//8, self.size[2]//8)),
-		# 	tio.transforms.ZNormalization(),
-		# 	tio.transforms.RescaleIntensity(out_min_max=(-3,3)),
-		# 	tio.transforms.ZNormalization()
-		# 		]
-		# 	)
+
 
 		self.transforms = T.Compose([
 			T.ToPILImage(),
@@ -64,13 +54,8 @@ class TOMOPreProjAngle(Dataset):
 			T.Normalize((0.5),(0.5))]
 			)
 
-		# self.scripted_transforms = torch.jit.script(transforms)
-		# self.crop = tio.transforms.Crop((self.size[0]//4, self.size[1]//4, self.size[2]//4))
 		self.num_samples = len(self.subvols)
 		
-		# self.width_z = width_z
-		# self.width_xy = width_xy
-		# print('hello tomo')
 		print('Loaded {} {} samples'.format(split, self.num_samples))
 
 	def __len__(self):
@@ -122,10 +107,7 @@ class TOMOPreProjAngle(Dataset):
 	def load_data(self, image_ext=''):
 		
 		image_list = pd.read_csv(self.data_dir, sep='\t')
-		# coords = pd.read_csv(self.coord_dir, sep='\t')
-		# images = load_tomos_from_list(image_list.image_name, image_list.path, order='zxy', compress=False, denoise=False, tilt=True)
 		images, angles = load_tomos_and_angles_from_list(image_list.image_name, image_list.rec_path, image_list.angle_path, order='zxy', compress=False, denoise=self.opt.gauss, tilt=True)
-		# print('self.opt.gauss', self.opt.gauss)
 		if self.split == 'train':
 			x_s, y_s, z_s = np.arange(self.size[1]//2, self.tomo_size[0]-self.size[1]//2, 2), np.arange(self.size[1]//2, self.tomo_size[0]-self.size[1]//2, 2), np.arange(50, 180, 2)
 			xv, yv, zv = np.meshgrid(x_s, y_s, z_s, indexing = 'xy')

@@ -58,12 +58,6 @@ class TOMO_Multi(Dataset):
 		num_particles = len(coords)
 		ims, targets, names = self.match_images_targets(images, coords)
 
-		# print('ims', len(ims))
-		# print(ims[0].shape)
-		# print('targets', len(targets))
-		# print('targets', targets[0])
-		# print(targets[0])
-		# print(names)
 
 		return ims, targets, names
 

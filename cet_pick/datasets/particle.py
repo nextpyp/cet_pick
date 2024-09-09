@@ -35,28 +35,23 @@ class ParticleDataset(data.Dataset):
 		name = self.names[index]
 		depth, height, width = img.shape[0], img.shape[1], img.shape[2]
 		num_objs = len(coords)
-		# print('img', img.shape)
-		# print('num_objs', num_objs)
+
 		output_h, output_w = height // self.opt.down_ratio, width // self.opt.down_ratio
 		num_class = self.num_classes
 		negative_region_x = list(np.arange(5,output_h - 5))
 		negative_region_y = list(np.arange(5,output_w - 5))
-		# negative_region_z = list(np.concatenate((np.arange(-10, -3), np.arange(3, 10))))
 		negative_region_z = list(np.arange(0, 10))
 		if self.split == 'train':
 			hm = np.zeros((depth, output_h, output_w), dtype=np.float32) - 1
 		else:
 			hm = np.zeros((depth, output_h, output_w), dtype=np.float32)
-		# hm[]
-		# hm[:10, :, :] = 0
-		# hm[-10:,:, :] = 0
+
 		used_mask = np.zeros((depth, output_h, output_w), dtype=np.float32)
 		wh = np.zeros((num_objs, 1), dtype=np.float32)
 		reg = np.zeros((num_objs, 2), dtype=np.float32)
 		ind = np.zeros((num_objs), dtype=np.int64)
 		clas_z = np.zeros((depth), dtype=np.float32)
 		reg_mask = np.zeros((num_objs), dtype=np.uint8)
-		# centers = np.zeros((num_objs, 3), dtype=np.float32)
 		draw_gaussian = draw_msra_gaussian_3d if self.opt.mse_loss else draw_umich_gaussian_3d
 
 		gt_det = []
@@ -81,48 +76,36 @@ class ParticleDataset(data.Dataset):
 		h = self.opt.bbox // self.opt.down_ratio
 		for k in range(num_objs):
 			ann = coords[k]
-			# print('ann', ann)
 			if _flip_lr:
 				ann = self._flip_coord_lr(ann, width)
 			if _flip_ud:
 				ann = self._flip_coord_ud(ann, height)
 			radius = gaussian_radius((math.ceil(h), math.ceil(h)))
 			radius = max(0, int(radius))
-			# print('radius', radius)
 			radius = self.opt.hm_gauss if self.opt.mse_loss else radius
 			ann = self._downscale_coord(ann)
-			# print('ann', ann)
 			ann = np.array(ann)
 			ct_int = ann.astype(np.int32)
 			z_coord = ct_int[-1]
-			# centers[k] = ct_int
 			clas_z[int(z_coord)] = 1
 			draw_gaussian(hm, ct_int, radius, 0, 0, 0, discrete=False)
 			wh[k] = h
 			used_mask[z_coord, ct_int[1], ct_int[0]] = 1
-			# wrong expression
-			# ind[k] = (ct_int[1] * output_w + ct_int[0])*ct_int[2]
 			ind[k] = ct_int[2] * (output_w * output_h) + ct_int[1] * output_w + ct_int[0]
-			# print('ind', ct_int[2] * (output_w * output_h) + ct_int[1] * output_w + ct_int[0])
 			reg[k] = ann[:2] - ct_int[:2]
 			reg_mask[k] = 1
 			gt_det.append(ann)
 			if self.opt.contrastive:
 				if self.split == 'train':
-					# offs_x_y = [-5,-4, -6, 4, 5, 6]
 					offs_x_y = [-2, -1, 1, 2]
-					# offs_z = [-2, -3, 3, 2]
 					offs_z = [-1, 1]
 					off_x = random.sample(offs_x_y, 1)[0]
 					off_y = random.sample(offs_x_y, 1)[0]
 					off_z = random.sample(offs_z, 1)[0]
-					# off_z = np.clip(off_z, 0, 127)
 					off_coord = ann - np.array([off_x, off_y, off_z])
-					# print('off_coord', off_coord)
 					if off_coord[-1] >= 128:
 						off_coord[-1] = 127
 					off_coord = np.clip(off_coord, 0, 255)
-					# print('off_coord', off_coord)
 					used_mask[off_coord[-1], off_coord[-2], off_coord[-3]] = 1
 					soft_negs.append(off_coord)
 				else:
@@ -132,8 +115,6 @@ class ParticleDataset(data.Dataset):
 
 		gt_det = np.array(gt_det, dtype=np.float32) if len(gt_det) > 0 else np.zeros((1,3), dtype=np.float32)
 		if self.opt.contrastive:
-			# if self.split == 'train:'
-			print('generating hard negative examples')
 			hard_negs = []
 			num_of_hard_negs = 60
 			for i in range(num_of_hard_negs):
@@ -147,13 +128,8 @@ class ParticleDataset(data.Dataset):
 			hard_negs = np.array(hard_negs, dtype=np.float32)
 			soft_negs = np.array(soft_negs, dtype=np.float32)
 
-		# print('gt_det', gt_det.shape)
-		# x,y,z = gt_det[0]
-		# print('xyz', x, y, z)
-		# print('img', img.shape)
 		ind = np.random.randint(0, 128, 16)
-		# print('new_img', img[ind].shape)
-		# print('new_z', clas_z[ind])
+
 		ret = {'input': img[ind].astype(np.float32), 'input_aug': img[ind].astype(np.float32), 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh, 'class': clas_z[ind], 'gt_det': gt_det, 'used_mask':used_mask}
 		if self.opt.contrastive:
 			ret.update({'soft_neg': soft_negs, 'hard_neg': hard_negs})

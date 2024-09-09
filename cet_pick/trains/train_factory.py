@@ -7,6 +7,7 @@ from cet_pick.trains.tomo_classifier_trainer import TomoClassTrainer
 from cet_pick.trains.tomo_cr_trainer import TomoCRTrainer
 from cet_pick.trains.tomo_fewshot_cr_trainer import TomoKMTrainer
 from cet_pick.trains.tomo_cr_semi_trainer import TomoCRSemiTrainer
+from cet_pick.trains.tomo_cr_semi_class_trainer import TomoCRClassTrainer
 from cet_pick.trains.tomo_simsiam_trainer import TomoSimSiamTrainer
 from cet_pick.trains.tomo_moco_trainer import TomoMocoTrainer
 from cet_pick.trains.tomo_scan_trainer import TomoSCANTrainer
@@ -18,6 +19,7 @@ train_factory = {
 	'cr':TomoCRTrainer,
 	'fs':TomoKMTrainer,
 	'semi':TomoCRSemiTrainer,
+	'semiclass': TomoCRClassTrainer,
 	'semi3d':TomoCRSemiTrainer,
 	'simsiam':TomoSimSiamTrainer,
 	'moco': TomoMocoTrainer,

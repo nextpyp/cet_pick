@@ -141,6 +141,7 @@ class ModelWithLoss(torch.nn.Module):
     def forward(self, batch, epoch, phase):
         # this part is only for contrastive use comment out if we are not doing contrastive learning
         if phase == 'train':
+            print('batch input', batch['input'].shape)
             outputs = self.model(batch['input'])
             outputs_cr = self.model(batch['input_aug'])
             loss, loss_stats = self.loss(outputs, batch, epoch, phase, output_cr=outputs_cr)
@@ -152,6 +153,36 @@ class ModelWithLoss(torch.nn.Module):
                 #     for name, param in self.model.named_parameters():
                 #         print(name, param.data)
                 # # print('val model', self.model)
+                print('woc?')
+                print('batch input shape', batch['input'].shape)
+                outputs = self.model(batch['input'])
+                outputs_cr = None
+                loss, loss_stats = self.loss(outputs, batch, epoch, phase, output_cr=outputs_cr)
+        return outputs[-1], loss, loss_stats 
+
+
+class ModelWithLossClass(torch.nn.Module):
+    def __init__(self, model, loss):
+        super(ModelWithLossClass, self).__init__()
+        self.model = model 
+        self.loss = loss 
+
+    def fill(self):
+        self.model.fill()
+
+    def unfill(self):
+        self.model.unfill()
+
+    def forward(self, batch, epoch, phase):
+        # this part is only for contrastive use comment out if we are not doing contrastive learning
+        if phase == 'train':
+
+            outputs = self.model(batch['input'])
+            outputs_cr = self.model(batch['input_aug'])
+            loss, loss_stats = self.loss(outputs, batch, epoch, phase, output_cr=outputs_cr)
+        else:
+            with torch.no_grad():
+
                 outputs = self.model(batch['input'])
                 outputs_cr = None
                 loss, loss_stats = self.loss(outputs, batch, epoch, phase, output_cr=outputs_cr)
@@ -195,6 +226,8 @@ class BaseTrainer(object):
             self.model_with_loss = ModelWithLossSCAN2D3D(model,self.loss,update_cluster_head_only=self.update_cluster_head_only)
         elif opt.task == 'denoise':
             self.model_with_loss = ModelWithLossDenoise(model, self.loss)
+        elif opt.task == 'semiclass':
+            self.model_with_loss = ModelWithLossClass(model, self.loss)
         else:
             self.model_with_loss = ModelWithLoss(model, self.loss)
         # self.model_with_loss = ModelWithLossCl(model, self.loss)
@@ -237,7 +270,7 @@ class BaseTrainer(object):
         bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
         end = time.time()
         for iter_id, batch in enumerate(data_loader):
-            # print('batch', batch['class'])
+
             if iter_id >= num_iters:
                 break
             data_time.update(time.time() - end)
@@ -254,12 +287,13 @@ class BaseTrainer(object):
         else:
             model_with_loss.eval()
             torch.cuda.empty_cache()
-        # sup_loss = SupConLoss(0.2, 0.7, 0.7)
+ 
         opt = self.opt 
         results = {}
         data_time, batch_time = AverageMeter(), AverageMeter()
         avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
         num_iters = len(data_loader) if opt.num_iters < 0 else opt.num_iters 
+
         bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
         end = time.time()
 
@@ -269,7 +303,7 @@ class BaseTrainer(object):
             data_time.update(time.time() - end)
             
             for k in batch:
-                # print('k', k)
+
                 if k!= 'meta' and k!='ml_graph' and k!='cl_graph':
                     batch[k] = batch[k].to(device = opt.device, non_blocking=True)
             output, loss, loss_stats, cluster_centers, cluster_ind = model_with_loss(batch, epoch, phase, cluster_centers, cluster_ind)
@@ -308,8 +342,7 @@ class BaseTrainer(object):
         bar.finish()
         ret = {k: v.avg for k, v in avg_loss_stats.items()}
         ret['time'] = bar.elapsed_td.total_seconds() / 60.
-        # ret['cluster_centers'] = cluster_centers
-        # ret['cluster_ind'] = cluster_ind
+
 
         return ret, results, cluster_centers, cluster_ind
 
@@ -336,7 +369,6 @@ class BaseTrainer(object):
                 torch.cuda.empty_cache()
 
 
-        # sup_loss = SupConLoss(0.2, 0.7, 0.7)
         opt = self.opt 
         results = {}
         data_time, batch_time = AverageMeter(), AverageMeter()
@@ -348,7 +380,7 @@ class BaseTrainer(object):
             # actual_iter = iter
             adjust_lr_denoise(self.iter+1, opt.num_iters, 0.2, 0.7, opt.lr, self.optimizer)
             self.iter = self.iter + opt.batch_size
-            # if iter_id >= num_iters:
+
             if self.iter >= num_iters:
                 break
             data_time.update(time.time() - end)
@@ -360,14 +392,12 @@ class BaseTrainer(object):
                         batch[k] = batch[k].cuda(opt.gpu)
                     else:
                         batch[k] = batch[k].to(device = opt.device, non_blocking=True)
-                    # print(k, batch[k].shape)
-                    # batch[k] = batch[k].to(device = opt.device, non_blocking=True)
+  
             output, loss, loss_stats = model_with_loss(batch, epoch, phase)
             
             if self.opt.task == 'denoise':
                 loss = loss.mean()
-            # loss = loss.mean()
-            # torch.autograd.set_detect_anomaly(True)
+
             if phase == 'train':
                 self.optimizer.zero_grad()
 
@@ -405,6 +435,7 @@ class BaseTrainer(object):
                 bar.next()
             if phase != 'train':
                 if opt.debug > 0:
+
                     self.debug(batch, output, iter_id)
 
             if opt.test:
@@ -419,7 +450,7 @@ class BaseTrainer(object):
         return ret, results 
 
     def run_epoch(self, phase, epoch, data_loader):
-        # print('epoch', epoch)
+
         model_with_loss = self.model_with_loss
         if self.opt.task != 'scan':
             if phase == 'train':
@@ -438,9 +469,18 @@ class BaseTrainer(object):
                     model_with_loss = self.model_with_loss.module
                 model_with_loss.eval()
                 torch.cuda.empty_cache()
+        if self.opt.task == 'semiclass':
+            if phase == 'train':
+                model_with_loss.train()
+                model_with_loss.unfill()
+            else:
+                if len(self.opt.gpus) > 1:
+                    model_with_loss = self.model_with_loss.module
+                model_with_loss.eval()
+                model_with_loss.fill()
+                torch.cuda.empty_cache()
 
 
-        # sup_loss = SupConLoss(0.2, 0.7, 0.7)
         opt = self.opt 
         results = {}
         data_time, batch_time = AverageMeter(), AverageMeter()
@@ -449,7 +489,7 @@ class BaseTrainer(object):
         bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
         end = time.time()
         for iter_id, batch in enumerate(data_loader):
-            # actual_iter = iter
+
             if iter_id >= num_iters:
                 break
             data_time.update(time.time() - end)

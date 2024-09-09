@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from cet_pick.models.utils import _transpose_and_gather_feat
+# from pytorch_metric_learning import miners, losses
 import numpy as np
 from scipy import stats
 from torch.autograd import Variable
@@ -208,7 +209,7 @@ class SupConLossPre(nn.Module):
 
 def _bce_loss(pred, gt):
     bce_loss = nn.BCEWithLogitsLoss()
-    
+
     loss = bce_loss(pred, gt)
     return loss 
 
@@ -217,16 +218,19 @@ def _pu_ge_loss(pred, gt, tau, criteria, slack=1, entropy_penalty=0):
     gt = gt.squeeze()
     gt = gt.view(-1)
     pred = pred.view(-1)
-
     select = (gt.data >= 0)
-    if select.sum().item() > 0:
+
+    if select.sum().item() >= 0:
         classifier_loss = criteria(pred[select], gt[select])
     else:
         classifier_loss = 0  
+
     select = (gt.data == -1)
+
     N = select.sum().item()
     # p_hat = torch.sigmoid(out_score[select])
     p_hat = pred[select]
+    # p_hat = torch.sigmoid(pred[select])
     q_mu = p_hat.sum()
     q_var = torch.sum(p_hat*(1-p_hat))
     count_vector = torch.arange(0, N+1).float()
@@ -241,6 +245,7 @@ def _pu_ge_loss(pred, gt, tau, criteria, slack=1, entropy_penalty=0):
     log_binom = Variable(log_binom)
     # ge_penalty = -torch.mean(log_binom*q_discrete)
     ge_penalty = -torch.sum(log_binom*q_discrete)
+    # print('ge penalty....', ge_penalty)
     if entropy_penalty > 0:
         q_entropy = 0.5 * (torch.log(q_var) + np.log(2*np.pi) + 1)
         ge_penalty = ge_penalty + q_entropy * entropy_penalty
@@ -269,10 +274,12 @@ def _pu_neg_loss(pred, gt, tau, beta, gamma):
 
     # num_pos = true_pos_inds.float().sum() + soft_pos_inds.float().sum()
     num_pos = true_pos_inds.float().sum()
+    # print('num_pos', num_pos)
     num_unlabeld = unlabeled_inds.float().sum()
     num_soft = soft_pos_inds.float().sum()
     # total_pos = (num_pos+num_soft)/(num_pos+num_unlabeld+num_soft)
     # tau_use = tau - total_pos/2
+    # print('num_soft', num_soft)
     soft_pow_weights = torch.pow(1 - gt, 4)
     soft_pow_neg_weights = torch.pow(gt, 4)
     pos_loss = torch.log(pred) * torch.pow(1 - pred, 2) * true_pos_inds
@@ -331,6 +338,43 @@ class PUGELoss(nn.Module):
     def forward(self, pred, gt):
         return self.puloss(pred, gt, self.tau, self.criteria, self.slack, self.entropy_penalty)
 
+def _neg_loss_mod(pred, gt, threshold):
+    ''' Modified focal loss. Exactly the same as CornerNet.
+    Runs faster and costs a little bit more memory
+    Arguments:
+    pred (batch x c x h x w)
+    gt_regr (batch x c x h x w)
+    '''
+    
+
+    gt = gt.unsqueeze(0)
+    # pos_inds = gt.eq(0.9).float()
+    pos_inds = gt.gt(threshold).float()
+    # pos_inds = gt.gt(threshold).float()
+    neg_inds_update = gt.lt(threshold).float()
+
+    # print('gt', gt)
+    # gt_0 = gt.gt(-1).float()
+    # neg_inds_update = gt_0 == neg_inds
+    # neg_inds_update = neg_inds_update.float()
+
+    neg_weights = torch.pow(1 - gt, 4)
+
+    loss = 0
+
+    pos_loss = torch.log(pred) * torch.pow(1 - pred, 2) * pos_inds
+    neg_loss = torch.log(1 - pred) * torch.pow(pred, 2) * neg_weights * neg_inds_update
+
+    num_pos  = pos_inds.float().sum()
+    pos_loss = pos_loss.sum()
+    neg_loss = neg_loss.sum()
+
+    if num_pos == 0:
+        loss = loss - neg_loss
+    else:
+        loss = loss - (pos_loss + neg_loss) / num_pos
+
+    return loss
 
 
 def _neg_loss(pred, gt):
@@ -393,6 +437,16 @@ class FocalLoss(nn.Module):
 
     def forward(self, out, target):
         return self.neg_loss(out, target)
+
+class FocalLoss_mod(nn.Module):
+    '''nn.Module warpper for focal loss'''
+    def __init__(self, threshold):
+        super(FocalLoss_mod, self).__init__()
+        self.neg_loss = _neg_loss_mod
+        self.threshold = threshold
+
+    def forward(self, out, target):
+        return self.neg_loss(out, target, self.threshold)
 
 class RegLoss(nn.Module):
     def __init__(self):
@@ -550,8 +604,7 @@ class UnbiasedConLoss(nn.Module):
             labels_postivies = labels.gt(opt.thresh).float()
         else:
             labels_postivies = labels.eq(1).float()
-        num_of_positives = labels_postivies.sum()
-        
+
         num_of_pixels = all_features.shape[0]
         pos_ratio = num_of_positives / num_of_pixels
         num_of_negatives = 2 * (num_of_pixels - num_of_positives)
@@ -610,21 +663,21 @@ class UnbiasedConLoss(nn.Module):
 
         Ng_neg = self.calc_g(unlabed_pos_feat_mean, unlabeled_rem_feat_mean, 1-self.tau_plus) 
         unlbed_prob = all_out_preds[un_labels]
-        unlbed_prob_pos = unlbed_prob.gt(0.95).float()
-        mid_pos_up = unlbed_prob.lt(0.95)
-        mid_pos_bot = unlbed_prob.gt(0.1)
+        unlbed_prob_pos = unlbed_prob.gt(0.99).float()
+        mid_pos_up = unlbed_prob.lt(0.99)
+        mid_pos_bot = unlbed_prob.gt(0.01)
         mid_pos_fin = mid_pos_up == mid_pos_bot
         mid_pos_fin = mid_pos_fin.bool()
         num_of_pseudopos = unlbed_prob_pos.sum()
-        unlbed_prob_neg = unlbed_prob.lt(0.1).float()
+        unlbed_prob_neg = unlbed_prob.lt(0.01).float()
         num_of_pseudonegs = unlbed_prob_neg.sum()
         num_of_mids = mid_pos_fin.float().sum()
         debiased_loss_unsup = 0
         if num_of_pseudopos > 0:
-            unlabeled_pos_loss = (-torch.log(unlabed_pos_feat_mean / (unlabed_pos_feat_mean + Ng_pos)) * unlbed_prob)[unlbed_prob.gt(0.95).bool()].mean()
+            unlabeled_pos_loss = (-torch.log(unlabed_pos_feat_mean / (unlabed_pos_feat_mean + Ng_pos)) * unlbed_prob)[unlbed_prob.gt(0.99).bool()].mean()
             debiased_loss_unsup += unlabeled_pos_loss
         if num_of_pseudonegs > 0:
-            unlabeled_neg_loss = (-torch.log(unlabed_pos_feat_mean / (unlabed_pos_feat_mean + Ng_neg)) * (1-unlbed_prob))[unlbed_prob.lt(0.1).bool()].mean()
+            unlabeled_neg_loss = (-torch.log(unlabed_pos_feat_mean / (unlabed_pos_feat_mean + Ng_neg)) * (1-unlbed_prob))[unlbed_prob.lt(0.01).bool()].mean()
             debiased_loss_unsup += unlabeled_neg_loss
         if num_of_mids > 0:
             debiased_loss_rem = (-torch.log(unlabed_pos_feat_mean / (unlabed_pos_feat_mean + Ng_pos)) * unlbed_prob)[mid_pos_fin].mean() - (torch.log(unlabed_pos_feat_mean/(unlabed_pos_feat_mean + Ng_neg)) * (1-unlbed_prob))[mid_pos_fin].mean()
@@ -640,7 +693,8 @@ class UnbiasedConLoss(nn.Module):
         elif debiased_loss_unsup !=0 and debiased_loss_rem == 0:
             debiased_loss_unsup = debiased_loss_unsup.mean()
         debiased_loss_sup = debiased_loss_sup.mean()
-
+        print('debiased_loss_sup', debiased_loss_sup)
+        print('debiased_loss_unsup', debiased_loss_unsup)
 
         return debiased_loss_sup, debiased_loss_unsup
 
@@ -890,7 +944,7 @@ class SupConLoss(nn.Module):
 
     def forward(self, pos_features, soft_negs, opt, labels=None):
         anchor_count = pos_features.shape[0]
-        print('anchor count', anchor_count)
+
         all_features = torch.cat((pos_features, soft_negs), dim=0)
         anchor_dot_contrast = torch.matmul(all_features, all_features.T)
         # mask out diagonal 

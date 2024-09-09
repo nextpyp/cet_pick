@@ -40,7 +40,6 @@ class TOMOMoco(Dataset):
 
 		if self.split == 'train' or self.split == 'val':
 			self.tomos, self.hms, self.inds, self.gt_dets, self.names, self.all_anns = self.load_data()
-			# self.num_samples = len(self.tomos)
 			if self.split == 'train':
 				self.num_samples = len(self.all_anns)
 			else:

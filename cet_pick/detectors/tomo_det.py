@@ -86,6 +86,14 @@ class TomodetDetector(BaseDetector):
             for c in post_coords:
                 print(str(c[0]) + '\t' + str(c[1]) + '\t' + str(c[2]),file = out_detect)
 
+        if self.opt.spike:
+            post_coords = tomo_group_postprocess(pre_coords, distance_cutoff=self.opt.distance_cutoff, min_per_group=5)
+            for c in post_coords:
+                if not self.opt.with_score:
+                    print(str(c[0]) + '\t' + str(c[2]) + '\t' + str(c[1]),file = out_detect)
+                else:
+                    print(str(c[0]) + '\t' + str(c[2]) + '\t' + str(c[1]) + '\t' + str(c[3]),file = out_detect)
+                    
     def merge_outputs(self, detections):
         scores = detectors[:, -1]
         if len(scores) > self.max_per_image:

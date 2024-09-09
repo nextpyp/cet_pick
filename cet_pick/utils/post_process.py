@@ -16,7 +16,7 @@ def tomo_post_process(dets, z_dim_tot = 128):
         top_preds = {}
         z_dim = dets[i,:,2]
 
-        for j in range(128):
+        for j in range(z_dim_tot):
             inds = (z_dim == j)
 
             if sum(inds) > 0:
@@ -28,6 +28,27 @@ def k_x(y, a,b,c):
     k = (2*a)/((1+(2*a*y+b)**2))**(2/3)
     return np.max(k)
 
+def tomo_group_postprocess(dets_all, distance_cutoff=15, min_per_group = 5):
+    output_coords = []
+    dets_w_score = np.asarray(dets_all)
+    dets = dets_w_score[:,:3]
+    adj_matrix = np.zeros((dets.shape[0], dets.shape[0]))
+    for ind in range(dets.shape[0]):
+        dist_with_curr = np.sqrt(np.sum((dets[ind] - dets) ** 2, 1))
+        connect_ind = np.where(dist_with_curr <= distance_cutoff)[0]
+        adj_matrix[ind, connect_ind] = 1
+    adjacency = sparse.csr_matrix(adj_matrix)
+    labels = get_connected_components(adjacency)
+    labels_unique = np.unique(labels)
+    # potential_all = []
+    for lb in labels_unique:
+        potential_candidates = dets_w_score[np.where(labels == lb)[0]]
+        if potential_candidates.shape[0] > min_per_group:
+            # potential_all.append(potential_candidates)
+            for jj in range(potential_candidates.shape[0]):
+                output_coords.append(potential_candidates[jj])
+    return output_coords
+    
 def tomo_fiber_postprocess(dets, distance_cutoff=15, res_cutoff = 30, curvature_cutoff=0.03):
     output_coords = []
     dets = np.asarray(dets)

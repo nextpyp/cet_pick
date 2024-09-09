@@ -30,7 +30,6 @@ class ParticlePreProjDataset(data.Dataset):
         x, y, z = ann[0]//self.opt.down_ratio, ann[1]//self.opt.down_ratio, ann[2]
         return [x,y,z]
 
-    # def _upscale_coord(self, ann):
     def convert_tomo_to_tilt(self, tomo_coord, angle, tomo_size = [512, 512, 256]):
         angle = angle*np.pi/180
         tomo_x, tomo_y, tomo_z = tomo_coord[0], tomo_coord[1], 256 - tomo_coord[2]
@@ -68,9 +67,6 @@ class ParticlePreProjDataset(data.Dataset):
         return [x,y,z]
 
     def __getitem__(self, index):
-        # if self.split == 'train':
-            
-        # tomo = self.tomos[i]
         sub_vol_set = self.subvols_sets[index]
         sub_vol = sub_vol_set[0]
         num_of_augs = len(sub_vol_set)

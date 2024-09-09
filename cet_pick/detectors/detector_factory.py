@@ -7,5 +7,6 @@ from cet_pick.detectors.tomo_det import TomodetDetector
 detector_factory = {
 	'tomo': TomodetDetector,
 	'semi': TomodetDetector,
-	'semi3d': TomodetDetector
+	'semi3d': TomodetDetector,
+	'semiclass': TomoClassdetDetector
 }

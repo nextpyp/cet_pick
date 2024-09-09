@@ -32,91 +32,37 @@ class TOMOSCAN2D3DProjAngleSelect(Dataset):
             self.ind_dir = os.path.join(opt.simsiam_dir, opt.train_coord_txt)
             self.names_dir = names 
             self.name = name 
-            # self.name_dir = '/nfs/bartesaghilab/qh36/3D_picking/cet_pick_github/cet_pick/cet_pick/'
-            print('data_dir', self.data_dir)
-        # self.coord_dir = os.path.join(opt.data_dir, opt.train_coord_txt)
-            # self.data_dir = os.path.join(opt.data_dir, 'train_img_new_10304.txt')
-            # self.data_dir = os.path.join(opt.data_dir,'10499_train_img_new.txt')
-            # self.coord_dir = os.path.join(opt.data_dir, '10499_train_coord_newest_v2_less.txt')
-            # self.coord_dir = os.path.join(opt.data_dir, '10304_train_coord_new_less.txt')
-        # elif split == 'val':
-        #   self.data_dir = os.path.join(opt.data_dir, opt.val_img_txt)
-        #   self.coord_dir = os.path.join(opt.data_dir, opt.val_coord_txt)
-        #   # self.data_dir = os.path.join(opt.data_dir, '10304_new_test_img_all.txt')
-        #   # self.coord_dir = os.path.join(opt.data_dir, '10304_val_coord_new.txt')
-        #   # self.data_dir = os.path.join(opt.data_dir, '10499_test_img_new.txt')
-        #   # self.data_dir = os.path.join(opt.data_dir, '10499_test_img_new.txt')
-        #   # self.coord_dir = os.path.join(opt.data_dir, '10499_test_coord_newest_v2.txt')
+   
         else:
             self.data_dir = os.path.join(opt.simsiam_dir, opt.test_img_txt)
             self.ind_dir = os.path.join(opt.simsiam_dir, opt.test_coord_txt)
             self.names_dir = names  
             self.name = name 
-            # self.coord_dir = os.path.join(opt.data_dir, opt.test_coord_txt)
-        #   # self.data_dir = os.path.join(opt.data_dir, '10499_test_img_new.txt')
-        #   # self.coord_dir = os.path.join(opt.data_dir, '10499_test_coord_newest_v2.txt')
-        #   # self.data_dir = os.path.join(opt.data_dir, '10304_new_test_img_all.txt')
-        #   # self.coord_dir = os.path.join(opt.data_dir, '10304_val_coord_new.txt')
-        # self.split = split 
+   
         self.opt = opt 
-        # self.size = size
-        # self.coords = []
-        # self.names_all = []
-        # self.low = low 
-        # self.up = up 
-        # self.tomo_size = tomo_size
+ 
         self.split = split
-        # self.hm_shape = None
-        # self.sigma1 = sigma1 
-        # self.sigma2 = sigma2
-        # self.images, self.targets, self.names = self.load_data()
-        # self.slice_range = slice_range
-        # self.K = K
+  
         self.indices = np.load(self.ind_dir)
         self.subvols = np.load(self.data_dir)
         self.names_all = np.load(self.names_dir)
-        # self.subvols = self.subvols[np.where(self.names_all == self.name)]
         self.subvols_2d = self.subvols[:, 0:1,:,:]
         self.subvols_3d = self.subvols[:,1:2, :, :]
         self.mean_subvols_2d = np.mean(self.subvols_2d)
         self.mean_subvols_3d = np.mean(self.subvols_3d)
         self.subvols_2d = self.subvols_2d[np.where(self.names_all == self.name)]
         self.subvols_3d = self.subvols_3d[np.where(self.names_all == self.name)]
-        # print('mean subvols', self.mean_subvols)
         self.indices = self.indices[np.where(self.names_all == self.name)]
         self.std_subvols_2d = np.std(self.subvols_2d)
         self.std_subvols_3d = np.std(self.subvols_3d)
-        # print('std subvols', self.std_subvols)
         self.num_neighbors = num_neighbors
         if self.num_neighbors is not None:
             self.indices = self.indices[:,:self.num_neighbors+1]
         assert (self.indices.shape[0] == self.subvols_2d.shape[0])
         assert (self.indices.shape[0] == self.subvols_3d.shape[0])
-        # print('subvols shape', self.subvols.shape)
-        # self.tomos, self.names, self.subvols = self.load_data()
-        # self.transforms = tio.Compose([
-        #   tio.RandomBlur(std=(0,1),p=0.15),
-        #   tio.RandomNoise(p=0.5),
-        #   tio.RandomAffine(scales=(1,1,1,1,1,1), translation=(0,0,0,0,0,0,),degrees=(0,60,0,0,0,0),p=0.75),
-        #   tio.transforms.Crop((self.size[0]//8, self.size[1]//8, self.size[2]//8)),
-        #   tio.transforms.ZNormalization(),
-        #   tio.transforms.RescaleIntensity(out_min_max=(-3,3)),
-        #   tio.transforms.ZNormalization()
-        #       ]
-        #   )
+       
         self.size = self.subvols.shape[1:]
-        # self.transforms = T.Compose([
-        #     T.ToPILImage(),
-        #     T.RandomHorizontalFlip(0.5),
-        #     T.RandomVerticalFlip(0.5),
-        #     # T.RandomRotation(60),
-        #     T.RandomAffine(degrees=30, translate=(0.1,0.2)),
-        #     T.CenterCrop(self.size[1]-self.size[1]//4),
-        #     T.ToTensor(),
-        #     CornerErasing(p=0.5,scale = (0.01, 0.015), ratio = (0.5, 1.5)),]
-        #     # CenterOut(crop_dim = 18),
-        #     # T.Normalize((0.5),(0.5))]
-        #     )
+
         self.transforms = T.Compose([
             T.ToPILImage(),
             T.RandomHorizontalFlip(0.5),
@@ -145,26 +91,10 @@ class TOMOSCAN2D3DProjAngleSelect(Dataset):
             # CenterOut(crop_dim = 18),
             T.Normalize((self.mean_subvols_2d, self.mean_subvols_3d),(self.std_subvols_2d, self.std_subvols_3d))]
             )
-        # self.weak_transforms = T.Compose([
-        #     T.ToPILImage(),
-        #     T.RandomHorizontalFlip(0.5),
-        #     T.RandomVerticalFlip(0.5),
-        #     # T.RandomRotation(60),
-        #     # T.RandomAffine(degrees=30, translate=(0.1,0.2)),
-        #     T.CenterCrop(self.size[1]-self.size[1]//4),
-        #     T.ToTensor(),
-        #     ]
-        #     # CenterOut(crop_dim = 18),
-        #     # T.Normalize((0.5),(0.5))]
-        #     )
 
-        # self.scripted_transforms = torch.jit.script(transforms)
-        # self.crop = tio.transforms.Crop((self.size[0]//4, self.size[1]//4, self.size[2]//4))
         self.num_samples = len(self.subvols)
         
-        # self.width_z = width_z
-        # self.width_xy = width_xy
-        # print('hello tomo')
+
         print('Loaded {} {} samples'.format(split, self.num_samples))
 
     def __len__(self):
@@ -246,7 +176,6 @@ class TOMOSCAN2D3DProjAngleSelect(Dataset):
 
 
             for p in range(num_of_coords):
-                # patches = None 
                 patches = []
                 for ind,an in enumerate(used_angles):
                     tx, ty = self.convert_tomo_to_tilt(positions[p], an, self.tomo_size)

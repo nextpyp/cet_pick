@@ -562,9 +562,9 @@ def gaussian3D_discrete(shape, sigma=1, label1=1, label2=2, thresh=0.5):
     y, x, z = np.ogrid[-m:m+1, -n:n+1, -o:o+1]
     h = np.exp(-(x * x + y * y + z * z) / (2 * sigma * sigma))
     h[h < np.finfo(h.dtype).eps * h.max()] = 0
-    # h[h>=0.5] = 1
+
     h[h >= thresh] = label1
-    # h[h<0.5] = 2
+
     h[h < thresh] = label2
     return h
 

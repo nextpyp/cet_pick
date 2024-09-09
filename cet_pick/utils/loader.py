@@ -25,7 +25,7 @@ def quantize(x, mi=-2.5, ma=2, dtype=np.uint8):
     return x
 
 def load_rec(path, order='xyz', compress = False, is_tilt=False):
-    # print('path', path)
+
     with mrcfile.open(path, permissive=True) as mrc:
         rec = mrc.data
     if order == 'xzy' or order == 'xyz':
@@ -33,7 +33,7 @@ def load_rec(path, order='xyz', compress = False, is_tilt=False):
             rec = np.swapaxes(rec, 2, 1)
         x, y, z = rec.shape
         new_z = math.ceil(z/2)
-        # new_z = z
+
         if compress:
             new_slices = np.zeros([new_z, x, y])
         else:

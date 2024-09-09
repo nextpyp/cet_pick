@@ -174,7 +174,6 @@ class TOMOPreProjAngleSelect2D3D(Dataset):
                 tomo_size_z = tomo_size_z * 2
             scores, positions = get_potential_coords_pyramid(rec, sigmas = self.sigma1)
             num_of_coords = positions.shape[0]
-            # print('angle', angle)
             used_tilts = np.where((angle >= self.low) & (angle <= self.up))[0]
             used_angles = angle[np.where((angle >= self.low) & (angle <= self.up))]
             used_v = v[used_tilts]

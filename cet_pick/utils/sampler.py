@@ -8,7 +8,7 @@ from PIL import Image
 import torch
 import torch.utils.data
 
-
+# from topaz implementation
 def enumerate_pn_coordinates_hm(Y, thresh):
    
     P_size = sum((y>thresh).sum() for y in Y) # number of positive coords (gaussian dist)
@@ -75,7 +75,6 @@ def enumerate_pn_coordinates(Y, tomos):
         # all_coords = set(np.arange(0, tot_coords))
         y = Y[image]
         set_y = set(y)
-        # for y in Y:
         for coord in all_coords:
             if coord in set_y:
                 P[i] = (image, coord)
@@ -83,17 +82,6 @@ def enumerate_pn_coordinates(Y, tomos):
             else:
                 N[j] = (image, coord)
                 j += 1
-    # re
-
-        # for coord in all_coords:
-
-        # for coord in range(len(y)):
-        #     if y[coord]:
-        #         P[i] = (image, coord)
-        #         i += 1
-        #     else:
-        #         N[j] = (image, coord)
-        #         j += 1
 
     return P, N
 
@@ -125,12 +113,7 @@ def enumerate_pu_coordinates(Y, tomos):
                 i += 1
             U[j] = (image, coord)
             j += 1
-        # for coord in range(len(y)):
-        #     if y[coord]:
-        #         P[i] = (image, coord)
-        #         i += 1
-        #     U[j] = (image, coord)
-        #     j += 1
+
 
     return P, U
 
