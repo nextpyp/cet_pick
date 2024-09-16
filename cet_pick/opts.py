@@ -163,6 +163,7 @@ class opts(object):
     self.parser.add_argument('--distance_cutoff', type=float, default=15, help='distance cutoff for whether two points are connected in graph')
     self.parser.add_argument('--r2_cutoff', type=float, default=30, help='max residual for fitted curve, omit if above the residual/bad fitting')
     self.parser.add_argument('--curvature_cutoff', type=float, default=0.003, help='max curvature for fitted curve, for microtubules the curvature should be small')
+    self.parser.add_argument('--distance_scale', type=float, default=2, help='distance (scale) between outputs points on fitted curve, default is 2 (every two pixels), bigger value represents more distant points')
     ### data 
 
     self.parser.add_argument('--train_img_txt', type=str, default='train_images.txt', help='path to file of training images')

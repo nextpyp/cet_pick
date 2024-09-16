@@ -82,7 +82,7 @@ class TomodetDetector(BaseDetector):
                         else:
                             print(str(x) + '\t' + str(z) + '\t' + str(y) + '\t' + str(score), file = out_detect)
         if self.opt.fiber:
-            post_coords = tomo_fiber_postprocess(pre_coords, distance_cutoff=self.opt.distance_cutoff, res_cutoff = self.opt.r2_cutoff, curvature_cutoff=self.opt.curvature_cutoff)
+            post_coords = tomo_fiber_postprocess(pre_coords, distance_cutoff=self.opt.distance_cutoff, res_cutoff = self.opt.r2_cutoff, curvature_cutoff=self.opt.curvature_cutoff, scale = self.opt.distance_scale)
             for c in post_coords:
                 print(str(c[0]) + '\t' + str(c[1]) + '\t' + str(c[2]),file = out_detect)
 

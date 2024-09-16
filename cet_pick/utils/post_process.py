@@ -49,7 +49,7 @@ def tomo_group_postprocess(dets_all, distance_cutoff=15, min_per_group = 5):
                 output_coords.append(potential_candidates[jj])
     return output_coords
     
-def tomo_fiber_postprocess(dets, distance_cutoff=15, res_cutoff = 30, curvature_cutoff=0.03):
+def tomo_fiber_postprocess(dets, distance_cutoff=15, res_cutoff = 30, curvature_cutoff=0.03, scale = 2):
     output_coords = []
     dets = np.asarray(dets)
     adj_matrix = np.zeros((dets.shape[0], dets.shape[0]))
@@ -70,7 +70,9 @@ def tomo_fiber_postprocess(dets, distance_cutoff=15, res_cutoff = 30, curvature_
         curr_line[:, [1, 0]] = curr_line[:, [0, 1]]
         diff_maxmin = np.max(curr_line[:,1]) - np.min(curr_line[:,1])
         num_points = diff_maxmin // 2
+        num_points_out = diff_maxmin // scale
         y_range = np.linspace(np.min(curr_line[:,1])-1, np.max(curr_line[:,1])+1, int(num_points)) ## prevent falling on same point
+        y_range_out = np.linspace(np.min(curr_line[:,1])-1, np.max(curr_line[:,1])+1, int(num_points_out))
         if y_range.shape[0] > 0:
             p_yx = np.polyfit(curr_line[:,1],curr_line[:,0],2, full=True)
             num_points_fit = curr_line.shape[0]
@@ -89,17 +91,17 @@ def tomo_fiber_postprocess(dets, distance_cutoff=15, res_cutoff = 30, curvature_
             kz = k_x(y_range, *coeffs_yz)
             if res_x + res_z < res_cutoff: 
                 if abs(kx) < curvature_cutoff and abs(kz) < curvature_cutoff:
-                    x_out = np.polyval(coeffs_yx, y_range)
-                    z_out = np.polyval(coeffs_yz, y_range)
+                    x_out = np.polyval(coeffs_yx, y_range_out)
+                    z_out = np.polyval(coeffs_yz, y_range_out)
                     for jj in range(x_out.shape[0]):
-                        line = [int(y_range[jj]), int(z_out[jj]), int(x_out[jj])]
+                        line = [int(y_range_out[jj]), int(z_out[jj]), int(x_out[jj])]
                         output_coords.append(line)
             elif res_x + res_z < res_cutoff * 3:
                 if abs(kx) < curvature_cutoff/10 and abs(kz) < curvature_cutoff/10:
-                    x_out = np.polyval(coeffs_yx, y_range)
-                    z_out = np.polyval(coeffs_yz, y_range)
+                    x_out = np.polyval(coeffs_yx, y_range_out)
+                    z_out = np.polyval(coeffs_yz, y_range_out)
                     for jj in range(x_out.shape[0]):
-                        line = [int(y_range[jj]), int(z_out[jj]), int(x_out[jj])]
+                        line = [int(y_range_out[jj]), int(z_out[jj]), int(x_out[jj])]
                         output_coords.append(line)
     return output_coords
 
