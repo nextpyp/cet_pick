@@ -189,8 +189,9 @@ def main(args):
             continue
         shown_images = np.r_[shown_images, [embeddings_2d[i]]]
         shown_images_idx.append(i)
+    bbox_props = dict(boxstyle="round,pad=0.1", fc="white", alpha=1.0, ec='#0000ff', lw=2)
     for idx in shown_images_idx:
-#         # print('figure size', rcp['figure.figsize'][0])
+        # print('figure size', rcp['figure.figsize'][0])
         lb = final_lbs[idx]
 
         thumbnail_size = int(rcp['figure.figsize'][0] * 5)
@@ -208,7 +209,7 @@ def main(args):
         
         coord_txt = '%d' % (lb)
         ax.add_artist(img_box)
-        ax.text(embeddings_2d[idx][0]-0.015, embeddings_2d[idx][1]+0.015, coord_txt, color='blue', fontweight='bold', fontsize=16)
+        ax.text(embeddings_2d[idx][0]-0.025, embeddings_2d[idx][1]+0.020, coord_txt, color='#0000ff', fontweight='bold', fontsize=15, bbox=bbox_props)
     ratio = 1. / ax.get_data_ratio()
 
     ax.set_aspect('equal', adjustable='box')
