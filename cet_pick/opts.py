@@ -74,7 +74,10 @@ class opts(object):
     
     # model
     self.parser.add_argument('--arch', default='unet_4', 
-                             help='model architecture. Currently tested'
+                             help='model architecture. '
+                                  'For content exploration module using both 2d tilt and 3d tomogram, please use simsiam2d3d_18'
+                                  'For content exploration module using 3D tomogram only, please use simsiam2d_18'
+                                  'For particle refinement module, Currently tested'
                                   'ressmall_18 | unet_4 | unet_5 ,'
                                   'unet_x typically performs better than ressmall')
     self.parser.add_argument('--last_k', type=int, default=3,
@@ -168,8 +171,8 @@ class opts(object):
 
     self.parser.add_argument('--train_img_txt', type=str, default='train_images.txt', help='path to file of training images')
     self.parser.add_argument('--train_coord_txt', type=str, default='train_coords.txt', help='path to file of training coords')
-    self.parser.add_argument('--val_img_txt', type=str, default='val_images.txt', help='path to file of validation images')
-    self.parser.add_argument('--val_coord_txt', type=str, default='val_coords.txt', help='path to file of validation coordinates')
+    self.parser.add_argument('--val_img_txt', type=str, help='path to file of validation images')
+    self.parser.add_argument('--val_coord_txt', type=str, help='path to file of validation coordinates')
     self.parser.add_argument('--test_img_txt', type=str, default = 'test_images.txt', help='path to file of test images')
     self.parser.add_argument('--test_coord_txt', type=str, default='test_coords.txt', help='path to file of test coords')
     self.parser.add_argument('--compress', action='store_true', 
@@ -216,9 +219,15 @@ class opts(object):
                     1 + math.cos(math.pi * opt.warm_epochs / opt.num_epochs)) / 2
       else:
         opt.warmup_to = opt.lr
-        
+    
+    if opt.val_intervals >= 0:
+      if opt.val_img_txt == None and opt.val_coord_txt == None:
+        print('No validation files but validation interval is greater than 1...using training files for validation')
+        opt.val_img_txt = opt.train_img_txt
+        opt.val_coord_txt = opt.train_coord_txt
+    
     if opt.trainval:
-      opt.val_intervals = 100000000
+      opt.val_interval = 100000000
 
     if opt.debug > 0:
       opt.num_workers = 0
