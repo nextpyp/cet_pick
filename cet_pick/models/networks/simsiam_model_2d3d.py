@@ -779,9 +779,7 @@ class TomoResClassifier2D3D(nn.Module):
 
         model_state_dict = self.state_dict()
         msg = 'If you see this, your model does not fully load the ' + \
-            'pre-trained weight. Please make sure ' + \
-            'you have correctly specified --arch xxx ' + \
-            'or set the correct --num_classes for your own dataset.'
+            'pre-trained weight. The current model only uses partial pre-trained weight and it is ok '
         for k in state_dict:
             if k in model_state_dict:
                 if state_dict[k].shape != model_state_dict[k].shape:
