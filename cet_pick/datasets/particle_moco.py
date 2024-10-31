@@ -111,8 +111,8 @@ class ParticleMocoDataset(data.Dataset):
 					gt_det_p = self.gt_dets[tomo_ind_p]
 					name_p = self.names[tomo_ind_p]
 					x_c_r, y_c_r, z_c_r = selected_ann[:3]
-					off_x_r = np.random.randint(-32, 32)
-					off_y_r = np.random.randint(-32, 32)
+					off_x_r = np.random.randint(-16, 16)
+					off_y_r = np.random.randint(-16, 16)
 					off_z_r = np.random.randint(-2, 2)
 
 			x_c_r, y_c_r, z_c_r = x_c_r + off_x_r, y_c_r + off_y_r, z_c_r + off_z_r

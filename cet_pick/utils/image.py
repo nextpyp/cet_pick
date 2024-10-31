@@ -573,7 +573,7 @@ def gaussian3D(shape, sigma=1):
     y, x, z = np.ogrid[-m:m+1, -n:n+1, -o:o+1]
     h = np.exp(-(x * x + y * y + z * z) / (2 * sigma * sigma))
     h[h < np.finfo(h.dtype).eps * h.max()] = 0
-    # h[h>0.9] = 1
+    h[h > 0.9] = 1
     return h
 
 def draw_umich_gaussian_3d(heatmap, center, radius, label1, label2, thresh, k=1, discrete = True):
