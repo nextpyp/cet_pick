@@ -129,6 +129,7 @@ class opts(object):
                              help='include validation in training and '
                                   'test on test set')
     self.parser.add_argument('--bbox', type=int, default=32, help='bbox size')
+    self.parser.add_argument('--translation_ratio', type=float, default = 0.5, help='number of voxels for translation augmentation in x,y direction as a ratio of bounding box size')
     self.parser.add_argument('--cr_weight', type=float, default=0.1, help='weight for contrastive loss')
     self.parser.add_argument('--thresh', type=float, default=0.5, help='threshold for pos and neg contrastive')
     self.parser.add_argument('--temp', type=float, default=0.07, help='temperature for info nce loss')

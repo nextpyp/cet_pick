@@ -42,6 +42,7 @@ class ParticleMocoDataset(data.Dataset):
 			gt_det = self.gt_dets[tomo_ind]
 			name = self.names[tomo_ind]
 
+			translation_pixels = int(self.opt.bbox * self.opt.translation_ratio)
 
 			flip_prob = np.random.random()
 			depth, height, width = tomo.shape[0], tomo.shape[1], tomo.shape[2]
@@ -80,8 +81,8 @@ class ParticleMocoDataset(data.Dataset):
 					name_p = self.names[tomo_ind_p]
 					
 					x_c_r, y_c_r, z_c_r = selected_ann[:3]
-					off_x_r = np.random.randint(-32, 32)
-					off_y_r = np.random.randint(-32, 32)
+					off_x_r = np.random.randint(-1*translation_pixels, translation_pixels)
+					off_y_r = np.random.randint(-1*translation_pixels, translation_pixels)
 					off_z_r = np.random.randint(-5, 5)
 			else:
 				# x y z translation augmentation
@@ -111,8 +112,8 @@ class ParticleMocoDataset(data.Dataset):
 					gt_det_p = self.gt_dets[tomo_ind_p]
 					name_p = self.names[tomo_ind_p]
 					x_c_r, y_c_r, z_c_r = selected_ann[:3]
-					off_x_r = np.random.randint(-16, 16)
-					off_y_r = np.random.randint(-16, 16)
+					off_x_r = np.random.randint(-1*translation_pixels, translation_pixels)
+					off_y_r = np.random.randint(-1*translation_pixels, translation_pixels)
 					off_z_r = np.random.randint(-2, 2)
 
 			x_c_r, y_c_r, z_c_r = x_c_r + off_x_r, y_c_r + off_y_r, z_c_r + off_z_r
@@ -128,7 +129,7 @@ class ParticleMocoDataset(data.Dataset):
 			up_xc, up_yc = int(x_c*self.opt.down_ratio), int(y_c*self.opt.down_ratio)
 			up_xc_r, up_yc_r = int(x_c_r * self.opt.down_ratio), int(y_c_r * self.opt.down_ratio)
 
-			# fixed input patch size of 64 * 64, downscale by 2 is 16 * 16
+			# fixed input patch size of 64 * 64, downscale by 2 is 32 * 32
 			cropped_tomo_c = tomo_p[z_c_r-3:z_c_r+3, up_yc_r-32:up_yc_r+32, up_xc_r-32:up_xc_r+32]
 			cropped_hm_c = hm_p[z_c_r-3:z_c_r+3, y_c_r-16:y_c_r+16, x_c_r-16:x_c_r+16]
 

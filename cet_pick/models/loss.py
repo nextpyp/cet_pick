@@ -273,7 +273,7 @@ def _pu_neg_loss(pred, gt, tau, beta, gamma):
     # num_pos = true_pos_inds.float().sum() + soft_pos_inds.float().sum()
     num_pos = true_pos_inds.float().sum()
     if num_pos == 0:
-        raise ValueError('Num of true positive is zero, please check tomogram size of input coordinates order')
+        raise ValueError('Num of true positive is zero, please check tomogram size of input coordinates order or use smaller translation ratio')
     num_unlabeld = unlabeled_inds.float().sum()
     num_soft = soft_pos_inds.float().sum()
     # total_pos = (num_pos+num_soft)/(num_pos+num_unlabeld+num_soft)
@@ -605,7 +605,7 @@ class UnbiasedConLoss(nn.Module):
 
         num_of_positives = labels_postivies.sum()
         if num_of_positives == 0:
-            raise ValueError('Num of true positive is zero, please check tomogram size of input coordinates order')
+            raise ValueError('Num of true positive is zero, please check tomogram size of input coordinates order or use smaller translation ratio')
         num_of_pixels = all_features.shape[0]
         pos_ratio = num_of_positives / num_of_pixels
         num_of_negatives = 2 * (num_of_pixels - num_of_positives)
