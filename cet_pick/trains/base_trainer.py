@@ -141,20 +141,14 @@ class ModelWithLoss(torch.nn.Module):
     def forward(self, batch, epoch, phase):
         # this part is only for contrastive use comment out if we are not doing contrastive learning
         if phase == 'train':
-            print('batch input', batch['input'].shape)
+            # print('batch input', batch['input'].shape)
             outputs = self.model(batch['input'])
             outputs_cr = self.model(batch['input_aug'])
             loss, loss_stats = self.loss(outputs, batch, epoch, phase, output_cr=outputs_cr)
         else:
             with torch.no_grad():
                 self.model.eval()
-                # if epoch == 10:
-                #     print('-------------val phase model weights------------')
-                #     for name, param in self.model.named_parameters():
-                #         print(name, param.data)
-                # # print('val model', self.model)
-                print('woc?')
-                print('batch input shape', batch['input'].shape)
+
                 outputs = self.model(batch['input'])
                 outputs_cr = None
                 loss, loss_stats = self.loss(outputs, batch, epoch, phase, output_cr=outputs_cr)

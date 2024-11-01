@@ -28,9 +28,11 @@ def load_rec(path, order='xyz', compress = False, is_tilt=False):
 
     with mrcfile.open(path, permissive=True) as mrc:
         rec = mrc.data
-    if order == 'xzy' or order == 'xyz':
+    if order == 'xzy' or order == 'xyz' or order == 'yxz':
         if order == 'xzy':
             rec = np.swapaxes(rec, 2, 1)
+        if order == 'yxz':
+            rec = np.swapaxes(rec, 1, 0)
         x, y, z = rec.shape
         new_z = math.ceil(z/2)
 
