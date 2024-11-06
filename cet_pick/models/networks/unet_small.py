@@ -183,14 +183,7 @@ class TomoUNet(nn.Module):
             print('=> loading pretrained model {}'.format(url))
             self.load_state_dict(pretrained_state_dict, strict=False)
             print('=> loaded pretrained model {}'.format(url))
-            # print('=> loading pretrained model {}'.format(url))
-            # # self.load_state_dict(pretrained_state_dict, strict=False)
-            # self._load_pretrained(pretrained_state_dict, inchans=1)
-            # print('=> init deconv weights from normal distribution')
-            # for name, m in self.deconv_layers.named_modules():
-            #     if isinstance(m, nn.BatchNorm2d):
-            #         nn.init.constant_(m.weight, 1)
-            #         nn.init.constant_(m.bias, 0)
+
 
 
 def get_tomo_unet_small(num_layers, heads, head_conv = 32,last_k=3):

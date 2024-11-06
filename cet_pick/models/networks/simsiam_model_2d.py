@@ -19,13 +19,24 @@ BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
 
 model_urls = {
-    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
-    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
-    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
-    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
-    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+    "resnet18": "https://download.pytorch.org/models/resnet18-f37072fd.pth",
+    "resnet34": "https://download.pytorch.org/models/resnet34-b627a593.pth",
+    "resnet50": "https://download.pytorch.org/models/resnet50-0676ba61.pth",
+    "resnet101": "https://download.pytorch.org/models/resnet101-63fe2227.pth",
+    "resnet152": "https://download.pytorch.org/models/resnet152-394f9c45.pth",
     'resnet8': 'https://github.com/tbepler/topaz/blob/master/topaz/pretrained/detector/resnet8_u64.sav'
 }
+
+
+model_urls_http = {
+    "resnet18": "http://download.pytorch.org/models/resnet18-f37072fd.pth",
+    "resnet34": "http://download.pytorch.org/models/resnet34-b627a593.pth",
+    "resnet50": "http://download.pytorch.org/models/resnet50-0676ba61.pth",
+    "resnet101": "http://download.pytorch.org/models/resnet101-63fe2227.pth",
+    "resnet152": "http://download.pytorch.org/models/resnet152-394f9c45.pth",
+    'resnet8': 'http://github.com/tbepler/topaz/blob/master/topaz/pretrained/detector/resnet8_u64.sav'
+}
+
 def fill_fc_weights(layers):
     for m in layers.modules():
         if isinstance(m, nn.Conv2d):
@@ -834,12 +845,19 @@ class TomoResClassifier2D(nn.Module):
                 state_dict[k] = model_state_dict[k]
         self.load_state_dict(state_dict, strict=False)
     def init_weights(self, num_layers):
-        if 1:
+        try:
             url = model_urls['resnet{}'.format(num_layers)]
             pretrained_state_dict = model_zoo.load_url(url)
             print('=> loading pretrained model {}'.format(url))
+            # self.load_state_dict(pretrained_state_dict, strict=False)
             self._load_pretrained(pretrained_state_dict, inchans=1)
-            print('=> init deconv weights from normal distribution')
+        except:
+            print('https url not working, trying http based url....')
+            url = model_urls_http['resnet{}'.format(num_layers)]
+            pretrained_state_dict = model_zoo.load_url(url)
+            print('=> loading pretrained model {}'.format(url))
+            # self.load_state_dict(pretrained_state_dict, strict=False)
+            self._load_pretrained(pretrained_state_dict, inchans=1)
 
 resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                34: (BasicBlock, [3, 4, 6, 3]),
@@ -893,10 +911,6 @@ def get_moco2d_net_small(num_layers, heads, head_conv=256):
 
 def get_simsiam2d_net_small(num_layers, heads, head_conv = 32, last_k=0):
     block_class, layers = resnet_spec[num_layers]
-    # url = '/nfs/bartesaghilab/qh36/3D_picking/cet_pick_github/cet_pick/cet_pick/models/pretrain/resnet8_u64.sav'
-    # pretrained_state_dict = torch.load(url)
-    # print('=> loading pretrained model {}'.format(url))
-    # model = TomoResClassifier
     model = TomoResClassifier2D(block_class, layers, heads, head_conv=head_conv)
     model.init_weights(num_layers)
     return model
