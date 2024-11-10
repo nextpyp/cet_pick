@@ -341,7 +341,6 @@ class TomoResClassifier3D(nn.Module):
 
     def forward(self,x1, x2):
         #input is batch*1 * d * h * w
-        #reshape it to 64 * 1 * 512 * 512 to treat each slice individually
 
 
         b, c, d, h, w = x1.shape
@@ -443,7 +442,7 @@ resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                101: (Bottleneck, [3, 4, 23, 3]),
                152: (Bottleneck, [3, 8, 36, 3])}
 
-def get_simsiam_net_small_3d(num_layers, heads, head_conv = 32):
+def get_simsiam_net_small_3d(num_layers, heads, head_conv = 32, **kwargs):
     block_class, layers = resnet_spec[num_layers]
 
     model = TomoResClassifier3D(block_class, layers, heads, head_conv=0)

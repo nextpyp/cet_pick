@@ -15,12 +15,24 @@ import numpy as np
 BN_MOMENTUM = 0.1
 logger = logging.getLogger(__name__)
 
+
 model_urls = {
-    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
-    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
-    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
-    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
-    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+    "resnet18": "https://download.pytorch.org/models/resnet18-f37072fd.pth",
+    "resnet34": "https://download.pytorch.org/models/resnet34-b627a593.pth",
+    "resnet50": "https://download.pytorch.org/models/resnet50-0676ba61.pth",
+    "resnet101": "https://download.pytorch.org/models/resnet101-63fe2227.pth",
+    "resnet152": "https://download.pytorch.org/models/resnet152-394f9c45.pth",
+    'resnet8': 'https://github.com/tbepler/topaz/blob/master/topaz/pretrained/detector/resnet8_u64.sav'
+}
+
+
+model_urls_http = {
+    "resnet18": "http://download.pytorch.org/models/resnet18-f37072fd.pth",
+    "resnet34": "http://download.pytorch.org/models/resnet34-b627a593.pth",
+    "resnet50": "http://download.pytorch.org/models/resnet50-0676ba61.pth",
+    "resnet101": "http://download.pytorch.org/models/resnet101-63fe2227.pth",
+    "resnet152": "http://download.pytorch.org/models/resnet152-394f9c45.pth",
+    'resnet8': 'http://github.com/tbepler/topaz/blob/master/topaz/pretrained/detector/resnet8_u64.sav'
 }
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -363,7 +375,6 @@ class TomoResClassifier(nn.Module):
         if len(x2.shape) > 4:
             x2 = x2.squeeze(dim=1)
         b, d, h, w = x1.shape
-        print('batch size', b)
         if b > 1:
             x1 = x1.reshape((-1,h,w)).contiguous()
             x1 = x1.unsqueeze(1)
@@ -372,7 +383,6 @@ class TomoResClassifier(nn.Module):
         else:
             x1 = x1.permute(1,0,2,3)
             x2 = x2.permute(1,0,2,3)
-        print('after flatt', x1.shape)
         x1 = self.conv1(x1)
         x1 = self.bn1(x1)
         x1 = self.relu(x1)
@@ -404,9 +414,7 @@ class TomoResClassifier(nn.Module):
             x2 = x2.unsqueeze(0)
         x1 = self.feature_3d(x1)
         x1 = self.avgpool(x1)
-        # print('x1', x1.shape)
-       
-        # print('--------gaussian mask device--------', self.gaussian_mask.get_device())
+
         x1 = x1.reshape(x1.size(0), -1)
         x1 = self.fc(x1)
         x2 = self.feature_3d(x2)
@@ -427,9 +435,7 @@ class TomoResClassifier(nn.Module):
                 ret1[head] = p1 
                 ret2[head] = p2
 
-            # ret[head] = self.__getattr__(head)(x)
-            # print('head', head)
-            # print('out', ret[head].shape)
+
 
         return [ret1, ret2]
 
@@ -471,18 +477,26 @@ class TomoResClassifier(nn.Module):
         #     if 'fc' in k:
         #         print(state_dict[k])
         # self.load_state_dict(state_dict, strict=False)
-    def init_weights(self, num_layers):
-        if 1:
-            url = model_urls['resnet{}'.format(num_layers)]
-            pretrained_state_dict = model_zoo.load_url(url)
+    def init_weights(self, num_layers, local_path = None):
+        if local_path is None:
+            try:
+                url = model_urls['resnet{}'.format(num_layers)]
+                pretrained_state_dict = model_zoo.load_url(url)
+                print('=> loading pretrained model {}'.format(url))
+                # self.load_state_dict(pretrained_state_dict, strict=False)
+                self._load_pretrained(pretrained_state_dict, inchans=1)
+            except:
+                print('https url not working, trying http based url....')
+                url = model_urls_http['resnet{}'.format(num_layers)]
+                pretrained_state_dict = model_zoo.load_url(url)
+                print('=> loading pretrained model {}'.format(url))
+                # self.load_state_dict(pretrained_state_dict, strict=False)
+                self._load_pretrained(pretrained_state_dict, inchans=1)
+        else:
+            url  = local_path
+            pretrained_state_dict = torch.load(url)
             print('=> loading pretrained model {}'.format(url))
-            # self.load_state_dict(pretrained_state_dict, strict=False)
             self._load_pretrained(pretrained_state_dict, inchans=1)
-            print('=> init deconv weights from normal distribution')
-            # for name, m in self.deconv_layers.named_modules():
-            #     if isinstance(m, nn.BatchNorm2d):
-            #         nn.init.constant_(m.weight, 1)
-            #         nn.init.constant_(m.bias, 0)
 
 resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                34: (BasicBlock, [3, 4, 6, 3]),
@@ -490,13 +504,12 @@ resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                101: (Bottleneck, [3, 4, 23, 3]),
                152: (Bottleneck, [3, 8, 36, 3])}
 
-def get_simsiam_net_small(num_layers, heads, head_conv = 32):
-    print('using original classifier')
+def get_simsiam_net_small(num_layers, heads, head_conv = 32, last_k = 0, local_path = None):
     block_class, layers = resnet_spec[num_layers]
 
     # model = TomoResClassifier
     model = TomoResClassifier(block_class, layers, heads, head_conv=0)
-    model.init_weights(num_layers)
+    model.init_weights(num_layers, local_path = local_path)
     return model
 
 

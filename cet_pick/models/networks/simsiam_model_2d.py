@@ -844,19 +844,25 @@ class TomoResClassifier2D(nn.Module):
                 print('No param {}.'.format(k) + msg)
                 state_dict[k] = model_state_dict[k]
         self.load_state_dict(state_dict, strict=False)
-    def init_weights(self, num_layers):
-        try:
-            url = model_urls['resnet{}'.format(num_layers)]
-            pretrained_state_dict = model_zoo.load_url(url)
+    def init_weights(self, num_layers, local_path = None):
+        if local_path is None:
+            try:
+                url = model_urls['resnet{}'.format(num_layers)]
+                pretrained_state_dict = model_zoo.load_url(url)
+                print('=> loading pretrained model {}'.format(url))
+                # self.load_state_dict(pretrained_state_dict, strict=False)
+                self._load_pretrained(pretrained_state_dict, inchans=1)
+            except:
+                print('https url not working, trying http based url....')
+                url = model_urls_http['resnet{}'.format(num_layers)]
+                pretrained_state_dict = model_zoo.load_url(url)
+                print('=> loading pretrained model {}'.format(url))
+                # self.load_state_dict(pretrained_state_dict, strict=False)
+                self._load_pretrained(pretrained_state_dict, inchans=1)
+        else:
+            url  = local_path
+            pretrained_state_dict = torch.load(url)
             print('=> loading pretrained model {}'.format(url))
-            # self.load_state_dict(pretrained_state_dict, strict=False)
-            self._load_pretrained(pretrained_state_dict, inchans=1)
-        except:
-            print('https url not working, trying http based url....')
-            url = model_urls_http['resnet{}'.format(num_layers)]
-            pretrained_state_dict = model_zoo.load_url(url)
-            print('=> loading pretrained model {}'.format(url))
-            # self.load_state_dict(pretrained_state_dict, strict=False)
             self._load_pretrained(pretrained_state_dict, inchans=1)
 
 resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
@@ -909,10 +915,10 @@ def get_moco2d_net_small(num_layers, heads, head_conv=256):
     model_base = TomoResBase(feature_dim=256, arch='resnet18', bn_splits=8)
     return model_base
 
-def get_simsiam2d_net_small(num_layers, heads, head_conv = 32, last_k=0):
+def get_simsiam2d_net_small(num_layers, heads, head_conv = 32, last_k=0, local_path = None):
     block_class, layers = resnet_spec[num_layers]
     model = TomoResClassifier2D(block_class, layers, heads, head_conv=head_conv)
-    model.init_weights(num_layers)
+    model.init_weights(num_layers, local_path = local_path)
     return model
 
 
