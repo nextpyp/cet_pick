@@ -62,11 +62,11 @@ def create_model_scan(arch, heads, head_conv, nclusters=3, nheads=1):
     model = get_model(num_layers=num_layers, heads=heads, head_conv=head_conv, n_clusters = nclusters, nheads = nheads)
     return model 
     
-def create_model(arch, heads, head_conv, last_k=0):
+def create_model(arch, heads, head_conv, last_k=0, local_path=None):
     num_layers = int(arch[arch.find('_') + 1:]) if '_' in arch else 0
     arch = arch[:arch.find('_')] if '_' in arch else arch
     get_model = _model_factory[arch]
-    model = get_model(num_layers=num_layers, heads=heads, head_conv=head_conv,last_k = last_k)
+    model = get_model(num_layers=num_layers, heads=heads, head_conv=head_conv,last_k = last_k, local_path=local_path)
     return model
 
 

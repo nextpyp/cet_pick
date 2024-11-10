@@ -91,6 +91,8 @@ class opts(object):
                                   '32 for particle identification and 128 for simsiam training.')
     self.parser.add_argument('--down_ratio', type=int, default=2,
                              help='output stride. Currently only supports 2 for particle detection.')
+    self.parser.add_argument('--pretrained_model', type=str, default=None,
+                             help='path to pretrained model')
 
     # input
     self.parser.add_argument('--input_res', type=int, default=-1, 

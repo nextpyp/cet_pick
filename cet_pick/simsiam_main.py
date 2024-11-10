@@ -57,7 +57,7 @@ def main(opt):
   opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
   
   print('Creating model...')
-  model = create_model(opt.arch, opt.heads, opt.head_conv)
+  model = create_model(opt.arch, opt.heads, opt.head_conv, local_path = opt.pretrained_model)
   if opt.distributed:
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
 
