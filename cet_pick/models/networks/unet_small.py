@@ -186,7 +186,7 @@ class TomoUNet(nn.Module):
 
 
 
-def get_tomo_unet_small(num_layers, heads, head_conv = 32,last_k=3):
+def get_tomo_unet_small(num_layers, heads, head_conv = 32,last_k=3, local_path=None):
     # model = TomoUNet(num_layers, heads, head_conv, last_k)
     model = TomoConvUNet(num_layers, heads, head_conv, last_k)
     # model.init_weights(num_layers)
