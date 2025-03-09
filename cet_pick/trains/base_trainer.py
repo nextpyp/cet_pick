@@ -261,7 +261,7 @@ class BaseTrainer(object):
         data_time, batch_time = AverageMeter(), AverageMeter()
         avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
         num_iters = len(data_loader) if opt.num_iters < 0 else opt.num_iters 
-        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
+        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters, check_tty=False)
         end = time.time()
         for iter_id, batch in enumerate(data_loader):
 
@@ -288,7 +288,7 @@ class BaseTrainer(object):
         avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
         num_iters = len(data_loader) if opt.num_iters < 0 else opt.num_iters 
 
-        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
+        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters, check_tty=False)
         end = time.time()
 
         for iter_id, batch in enumerate(data_loader):
@@ -368,7 +368,7 @@ class BaseTrainer(object):
         data_time, batch_time = AverageMeter(), AverageMeter()
         avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
         num_iters = len(data_loader) if opt.num_iters < 0 else opt.num_iters 
-        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
+        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters, check_tty=False)
         end = time.time()
         for iter_id, batch in enumerate(data_loader):
             # actual_iter = iter
@@ -480,7 +480,8 @@ class BaseTrainer(object):
         data_time, batch_time = AverageMeter(), AverageMeter()
         avg_loss_stats = {l: AverageMeter() for l in self.loss_stats}
         num_iters = len(data_loader) if opt.num_iters < 0 else opt.num_iters 
-        bar = Bar('{}/{}'.format(opt.task, opt.exp_id), max=num_iters)
+        interval = 10
+        bar = Bar(max=num_iters/interval, check_tty=False, bar_prefix="", bar_suffix="")
         end = time.time()
         for iter_id, batch in enumerate(data_loader):
 
@@ -533,7 +534,7 @@ class BaseTrainer(object):
             if opt.print_iter > 0:
                 if iter_id % opt.print_iter == 0:
                     print('{}/{}| {}'.format(opt.task, opt.exp_id, Bar.suffix)) 
-            else:
+            elif iter_id % interval == 0:
                 bar.next()
             if phase != 'train':
                 if opt.debug > 0:
