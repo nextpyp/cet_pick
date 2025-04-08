@@ -288,13 +288,13 @@ class CornerErasing(torch.nn.Module):
             p1 = np.random.rand()
             p2 = np.random.rand()
             if p1 > 0.5:
-                i = torch.randint(0, mid_h - h - 6, size=(1,)).item()
+                i = torch.randint(0, max(1,mid_h - h - 6), size=(1,)).item()
             else:
-                i = torch.randint(mid_h+6, img_h - h + 6, size=(1,)).item()
+                i = torch.randint(mid_h+6, max(mid_h+6+1,img_h - h + 6), size=(1,)).item()
             if p2 > 0.5:
-                j = torch.randint(0, mid_w - w - 6, size=(1,)).item()
+                j = torch.randint(0, max(1,mid_w - w - 6), size=(1,)).item()
             else:
-                j = torch.randint(mid_w+6, img_w - w + 6, size=(1,)).item()
+                j = torch.randint(mid_w+6, max(mid_w+6+1,img_w - w + 6), size=(1,)).item()
             return i, j, h, w, v
 
         return 0, 0, img_h, img_w, img
@@ -387,8 +387,8 @@ class RandomCropNoBorder(torch.nn.Module):
         if w == tw and h == th:
             return 0, 0, h, w
 
-        i = torch.randint(exclude, h - th-exclude + 1, size=(1,)).item()
-        j = torch.randint(exclude, w - tw-exclude + 1, size=(1,)).item()
+        i = torch.randint(exclude, max(exclude+1,h - th-exclude + 1), size=(1,)).item()
+        j = torch.randint(exclude, max(exclude+1,w - tw-exclude + 1), size=(1,)).item()
         return i, j, th, tw
 
     def __init__(self, size, padding=None, pad_if_needed=False, fill=0, exclude = 0, padding_mode="constant"):
