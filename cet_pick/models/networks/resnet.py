@@ -305,17 +305,26 @@ class TomoResNet(nn.Module):
             assert False, "Invalid number of in channels"
         self.load_state_dict(state_dict, strict=False)
     def init_weights(self, num_layers):
-        if 1:
+        try:
             url = model_urls['resnet{}'.format(num_layers)]
-            pretrained_state_dict = model_zoo.load_url(url)
-            print('=> loading pretrained model {}'.format(url))
-            # self.load_state_dict(pretrained_state_dict, strict=False)
+            local_url  = os.path.join('/opt/pyp/external/models', os.path.basename(url))
+            pretrained_state_dict = torch.load(local_url)
+            print('=> loading pretrained model {}'.format(local_url))
             self._load_pretrained(pretrained_state_dict, inchans=1)
-            print('=> init deconv weights from normal distribution')
-            for name, m in self.deconv_layers.named_modules():
-                if isinstance(m, nn.BatchNorm2d):
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
+        except:
+            print(f'Could not load pretrained model {local_url}')
+            try:
+                pretrained_state_dict = model_zoo.load_url(url)
+                print('=> loading pretrained model {}'.format(url))
+                # self.load_state_dict(pretrained_state_dict, strict=False)
+                self._load_pretrained(pretrained_state_dict, inchans=1)
+            except:
+                raise ValueError(f'Could not load pretrained model {url}')
+        print('=> init deconv weights from normal distribution')
+        for name, m in self.deconv_layers.named_modules():
+            if isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
 resnet_spec = {18: (BasicBlock, [2, 2, 2, 2]),
                34: (BasicBlock, [3, 4, 6, 3]),

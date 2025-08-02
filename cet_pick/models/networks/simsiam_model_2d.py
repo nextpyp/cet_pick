@@ -848,17 +848,27 @@ class TomoResClassifier2D(nn.Module):
         if local_path is None:
             try:
                 url = model_urls['resnet{}'.format(num_layers)]
-                pretrained_state_dict = model_zoo.load_url(url)
-                print('=> loading pretrained model {}'.format(url))
-                # self.load_state_dict(pretrained_state_dict, strict=False)
-                self._load_pretrained(pretrained_state_dict, inchans=1)
+                local_url  = os.path.join('/opt/pyp/external/models', os.path.basename(url))
+                pretrained_state_dict = torch.load(local_url)
+                print('=> loading pretrained model {}'.format(local_url))
+                self._load_pretrained(pretrained_state_dict, inchans=1) 
             except:
-                print('https url not working, trying http based url....')
-                url = model_urls_http['resnet{}'.format(num_layers)]
-                pretrained_state_dict = model_zoo.load_url(url)
-                print('=> loading pretrained model {}'.format(url))
-                # self.load_state_dict(pretrained_state_dict, strict=False)
-                self._load_pretrained(pretrained_state_dict, inchans=1)
+                print(f'Could not load pretrained model {local_url}')
+                try:
+                    pretrained_state_dict = model_zoo.load_url(url)
+                    print('=> loading pretrained model {}'.format(url))
+                    # self.load_state_dict(pretrained_state_dict, strict=False)
+                    self._load_pretrained(pretrained_state_dict, inchans=1)
+                except:
+                    print(f'Could not load pretrained model {url}')
+                    try:
+                        url = model_urls_http['resnet{}'.format(num_layers)]
+                        pretrained_state_dict = model_zoo.load_url(url)
+                        print('=> loading pretrained model {}'.format(url))
+                        # self.load_state_dict(pretrained_state_dict, strict=False)
+                        self._load_pretrained(pretrained_state_dict, inchans=1)
+                    except:
+                        raise RuntimeError(f'Could not load pretrained model {url}')
         else:
             url  = local_path
             pretrained_state_dict = torch.load(url)
