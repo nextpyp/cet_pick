@@ -29,7 +29,6 @@ from cet_pick.utils.project3d import Projector
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import pyarrow as pa
 
 class PrefetchDatasetProj(torch.utils.data.Dataset):
 
